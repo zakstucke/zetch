@@ -5,6 +5,9 @@ private/
 !*private*.zetch.*
 !*private*.*.zetch
 
+# Tempate files
+.cop.*.yml
+
 scratch_space.ipynb
 
 node_modules/
