@@ -1854,7 +1854,7 @@ dependencies = [
 
 [[package]]
 name = "zetch"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "bitbazaar",
  "chrono",

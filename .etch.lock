@@ -1,16 +1,16 @@
 {
   "version": "0.0.23",
   "files": {
+    "README.etch.md": "acc0e64ae7a10a3e901d1ad4454ff3d4e7b9f17ded7cc2b7240a12de09862918",
     "docs/LICENSE.etch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "py_rust/README.etch.md": "6b7e3780e558f4379df02342f396b807e336b209a409ab00f488948c2638ae37",
+    "docs/index.etch.md": "6b7e3780e558f4379df02342f396b807e336b209a409ab00f488948c2638ae37",
+    "py_rust/LICENSE.etch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
     "CODE_OF_CONDUCT.etch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
     "docs/CONTRIBUTING.etch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
-    "docs/index.etch.md": "6b7e3780e558f4379df02342f396b807e336b209a409ab00f488948c2638ae37",
-    "CONTRIBUTING.etch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
-    "setup.etch.cfg": "68a0e37adbb5da058d839ecc0b4b5a59e561146521aaa2fbcadc8eee57764e1a",
+    "setup.etch.cfg": "a2bf927c88e2fdf52eab7ed6c05d092cd69cf73b35e31c417ec0b929b2e1b41c",
     "docs/CODE_OF_CONDUCT.etch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
-    "LICENSE.etch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "py_rust/LICENSE.etch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "README.etch.md": "acc0e64ae7a10a3e901d1ad4454ff3d4e7b9f17ded7cc2b7240a12de09862918"
+    "CONTRIBUTING.etch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
+    "py_rust/README.etch.md": "6b7e3780e558f4379df02342f396b807e336b209a409ab00f488948c2638ae37",
+    "LICENSE.etch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b"
   }
 }

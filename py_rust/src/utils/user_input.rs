@@ -1,5 +1,4 @@
-use tokio::signal;
-use tokio::sync::mpsc;
+use tokio::{signal, sync::mpsc};
 
 use crate::prelude::*;
 

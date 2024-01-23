@@ -12,8 +12,6 @@ sha2 = '0.10.8'
 toml = '0.8.8'
 tracing = '0.1'
 valico = '4.0.0'
-strum = {version = "0.25", features = ["derive"]}
-tokio = {version = "1.35", features = ["macros", "sync", "signal", "rt"]}
 
 [dependencies.bitbazaar]
 features = ['cli']
@@ -43,6 +41,14 @@ version = '0.20.0'
 features = ['derive', 'rc']
 version = '1.0.193'
 
+[dependencies.strum]
+features = ['derive']
+version = '0.25'
+
+[dependencies.tokio]
+features = ['macros', 'sync', 'signal', 'rt']
+version = '1.35'
+
 [lib]
 crate-type = ['cdylib']
 name = 'zetch'
@@ -54,7 +60,7 @@ license = 'MIT'
 name = 'zetch'
 publish = false
 readme = 'README.md'
-version = '0.0.1'
+version = '0.0.2'
 
 [profile]
 
