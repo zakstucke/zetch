@@ -67,6 +67,8 @@ pub enum Command {
     Render(RenderCommand),
     /// Initialize the config file in the current directory.
     Init(InitCommand),
+    /// Replace a template matcher with another, e.g. zetch -> zet
+    ReplaceMatcher(ReplaceMatcherCommand),
     /// Read specific contents from the config file.
     ReadConfig(ReadConfigCommand),
     /// Read a finalised context variable from the config file.
@@ -96,6 +98,14 @@ pub struct RenderCommand {
     /// Hidden test flag, writes some json output to the root dir.
     #[arg(long, default_value = "false", hide = true)]
     pub debug: bool,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct ReplaceMatcherCommand {
+    #[clap(help = "The old matcher in template filenames to look for. E.g. 'jinja'.")]
+    pub old_matcher: String,
+    #[clap(help = "The new matcher to replace the old in each template filename. E.g. 'zetch'.")]
+    pub new_matcher: String,
 }
 
 #[derive(Parser, Debug, Clone, clap::ValueEnum)]

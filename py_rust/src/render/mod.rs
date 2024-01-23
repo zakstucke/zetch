@@ -12,6 +12,7 @@ mod lockfile;
 mod template;
 mod walker;
 pub use lockfile::hash_contents;
+pub use walker::get_template_matcher_rewrite_mapping;
 
 use crate::{
     args::RenderCommand,
@@ -104,11 +105,11 @@ fn render_inner(
     })?;
 
     let walker = timeit!("Filesystem walker creation", {
-        self::walker::create(args, render_args, &conf)
+        self::walker::create(args, &render_args.root, &conf)
     })?;
 
     let templates = timeit!("Traversing filesystem & identifying templates", {
-        self::walker::find_templates(render_args, walker)
+        self::walker::find_templates(&render_args.root, walker, "zetch")
     })?;
 
     let mut identical = Vec::new();

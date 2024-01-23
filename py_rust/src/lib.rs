@@ -16,14 +16,25 @@ mod init;
 mod prelude;
 mod read;
 mod render;
+mod replace_matcher;
 mod run;
 mod utils;
+
+use prelude::*;
 
 #[pyfunction]
 pub fn cli() {
     match run::run() {
         Ok(_) => std::process::exit(0),
         Err(e) => {
+            // Only include the file location of the errors if its an internal error, if its a user error its just bloat as an expected issue.
+            match e.current_context() {
+                Zerr::InternalError => {}
+                _ => {
+                    error_stack::Report::install_debug_hook::<std::panic::Location>(|_, _| {});
+                }
+            };
+
             #[allow(clippy::print_stderr)]
             {
                 eprintln!("{}", "zetch failed".red().bold());

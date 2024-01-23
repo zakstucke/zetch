@@ -1,23 +1,17 @@
 use std::path::{Path, PathBuf};
 
 use ignore::{overrides::OverrideBuilder, WalkBuilder};
-use once_cell::sync::Lazy;
 use regex::Regex;
 use tracing::debug;
 
 use super::lockfile::LOCKFILE_NAME;
 use crate::{
-    args::RenderCommand,
     config::{final_config_path, Config},
     prelude::*,
 };
 
-pub fn create(
-    args: &crate::args::Args,
-    render_args: &RenderCommand,
-    conf: &Config,
-) -> Result<WalkBuilder, Zerr> {
-    let mut builder = WalkBuilder::new(&render_args.root);
+pub fn create(args: &crate::args::Args, root: &Path, conf: &Config) -> Result<WalkBuilder, Zerr> {
+    let mut builder = WalkBuilder::new(root);
     builder.git_exclude(false); // Don't auto read .git/info/exclude
     builder.git_global(false); // Don't auto use a global .gitignore file
     builder.git_ignore(false); // Don't auto use .gitignore file
@@ -35,17 +29,16 @@ pub fn create(
     ];
 
     // If the config is inside the root, add it to the excludes:
-    if let Some(rel_config) = config_path_relative_to_root(
-        &render_args.root,
-        &final_config_path(&args.config, Some(&render_args.root))?,
-    )? {
+    if let Some(rel_config) =
+        config_path_relative_to_root(root, &final_config_path(&args.config, Some(root))?)?
+    {
         all_excludes.push(rel_config.display().to_string());
     }
 
     // Add in config supplied excludes:
     all_excludes.extend(conf.exclude.iter().map(|s| s.to_string()));
 
-    let mut overrider: OverrideBuilder = OverrideBuilder::new(&render_args.root);
+    let mut overrider: OverrideBuilder = OverrideBuilder::new(root);
     for exclude in all_excludes.iter() {
         // The override adder is the opposite, i.e. a match is a whitelist, so need to invert the exclude pattern provided:
         let trimmed = exclude.trim();
@@ -103,14 +96,20 @@ fn config_path_relative_to_root(root: &Path, config: &Path) -> Result<Option<Pat
     }
 }
 
-static MIDDLE_MATCHER: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(.*)(\.zetch\.)(.*)").expect("Regex failed to compile"));
+fn get_middle_regex(matcher: &str) -> Regex {
+    Regex::new(&format!(r"(.*)(\.{}\.)(.*)", matcher)).expect("Regex failed to compile")
+}
 
-static END_MATCHER: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(.*)(\.zetch)$").expect("Regex failed to compile"));
+fn get_end_regex(matcher: &str) -> Regex {
+    Regex::new(&format!(r"(.*)(\.{})$", matcher)).expect("Regex failed to compile")
+}
 
-fn try_regexes_get_match(filename: &str) -> Option<String> {
-    if let Some(caps) = MIDDLE_MATCHER.captures(filename) {
+fn try_regexes_and_rewrite(
+    filename: &str,
+    middle_regex: &Regex,
+    end_regex: &Regex,
+) -> Option<String> {
+    if let Some(caps) = middle_regex.captures(filename) {
         return Some(format!(
             "{}.{}",
             caps.get(1).map_or("", |m| m.as_str()),
@@ -118,7 +117,7 @@ fn try_regexes_get_match(filename: &str) -> Option<String> {
         ));
     }
 
-    if let Some(caps) = END_MATCHER.captures(filename) {
+    if let Some(caps) = end_regex.captures(filename) {
         return Some(caps.get(1).map_or("", |m| m.as_str()).to_string());
     }
 
@@ -126,18 +125,24 @@ fn try_regexes_get_match(filename: &str) -> Option<String> {
 }
 
 pub fn find_templates(
-    render_args: &RenderCommand,
+    root: &Path,
     walker: WalkBuilder,
+    matcher_str: &str,
 ) -> Result<Vec<super::template::Template>, Zerr> {
+    let middle_regex = get_middle_regex(matcher_str);
+    let end_regex = get_end_regex(matcher_str);
+
     let mut templates = vec![];
     let mut files_checked = 0;
     for entry in walker.build() {
         let entry = entry.change_context(Zerr::InternalError)?;
         if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
             let filename = entry.file_name().to_string_lossy();
-            if let Some(compiled_name) = try_regexes_get_match(&filename) {
+            if let Some(compiled_name) =
+                try_regexes_and_rewrite(&filename, &middle_regex, &end_regex)
+            {
                 templates.push(super::template::Template::new(
-                    render_args.root.clone(),
+                    root.into(),
                     entry.path().to_path_buf(),
                     // Replacing the name with the compiled name:
                     entry.path().parent().unwrap().join(compiled_name),
@@ -154,4 +159,76 @@ pub fn find_templates(
     );
 
     Ok(templates)
+}
+
+/// Replace the matcher in the filename with the new matcher.
+/// Used by the replace-matcher command.
+fn rewrite_template_matcher(
+    filename: &str,
+    middle_regex: &Regex,
+    end_regex: &Regex,
+    new_matcher: &str,
+) -> Result<String, Zerr> {
+    let filename = if let Some(caps) = middle_regex.captures(filename) {
+        format!(
+            "{}.{}.{}",
+            caps.get(1).map_or("", |m| m.as_str()),
+            new_matcher,
+            caps.get(3).map_or("", |m| m.as_str())
+        )
+    } else {
+        filename.to_string()
+    };
+
+    let filename = if let Some(caps) = end_regex.captures(&filename) {
+        format!("{}.{}", caps.get(1).map_or("", |m| m.as_str()), new_matcher)
+    } else {
+        filename
+    };
+
+    Ok(filename)
+}
+
+/// Returns a mapping of current template paths to new template paths with an old and new match string.
+/// Used by the replace-matcher command, otherwise used internally in render().
+pub fn get_template_matcher_rewrite_mapping(
+    args: &crate::args::Args,
+    root: &Path,
+    conf: &Config,
+    old_matcher: &str,
+    new_matcher: &str,
+) -> Result<Vec<(PathBuf, PathBuf)>, Zerr> {
+    let templates = find_templates(root, create(args, root, conf)?, old_matcher)?;
+
+    let middle_regex = get_middle_regex(old_matcher);
+    let end_regex = get_end_regex(old_matcher);
+
+    templates
+        .into_iter()
+        .map(|t| {
+            let old_filename = t
+                .path
+                .file_name()
+                .ok_or_else(|| {
+                    zerr!(
+                        Zerr::InternalError,
+                        "Failed to get filename from path: {}",
+                        t.path.display()
+                    )
+                })?
+                .to_string_lossy()
+                .to_string();
+
+            let new_path = t
+                .path
+                .to_path_buf()
+                .with_file_name(rewrite_template_matcher(
+                    &old_filename,
+                    &middle_regex,
+                    &end_regex,
+                    new_matcher,
+                )?);
+            Ok((t.path, new_path))
+        })
+        .collect::<Result<Vec<_>, Zerr>>()
 }

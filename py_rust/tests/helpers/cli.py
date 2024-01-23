@@ -57,9 +57,11 @@ def init(root: tp.Union[str, pathlib.Path]):
         print(total_output)
 
 
-def run(args: list[str]) -> str:
+def run(
+    args: list[str], custom_root: tp.Optional[pathlib.Path] = None, stdin: tp.Optional[str] = None
+) -> str:
     """Run an arbitrary command, returning stdout and err combined. Raises ValueError on non-zero exit code."""
-    p1 = subprocess.run(args, capture_output=True, text=True)
+    p1 = subprocess.run(args, capture_output=True, text=True, cwd=custom_root, input=stdin)
     total_output = f"{p1.stdout}\n{p1.stderr}".strip()
     if p1.returncode != 0:
         raise ValueError(total_output)
