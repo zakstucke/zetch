@@ -4,9 +4,11 @@ use bitbazaar::{
 };
 use clap::{Parser, Subcommand};
 
-use crate::arg_matcher::arg_matcher;
-use crate::args::{self, get_py_args};
-use crate::prelude::*;
+use crate::{
+    arg_matcher::arg_matcher,
+    args::{self, get_py_args},
+    prelude::*,
+};
 
 // If one of these is the first argument, won't auto assume example_project_py_rs render subcommand
 const ROOT_ARGS: &[&str] = &["-h", "--help", "help", "-V", "--version", "version"];

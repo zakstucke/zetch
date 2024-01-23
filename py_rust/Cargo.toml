@@ -1,23 +1,7 @@
-[package]
-name = "zetch"
-version = "0.0.0"
-edition = "2021"
-readme = "README.md"
-license = "MIT"
-# This crate should only be released as a python package, so disable any rust side crates publishing:
-publish = false
-
-[lib]
-name = "zetch"
-crate-type = ["cdylib"]
-path = "src/lib.rs"
-
-# Add your dependencies here
 [dependencies]
-colored = '2'
-tracing = "0.1"
-error-stack = "0.4"
 chrono = '0.4.31'
+colored = '2'
+error-stack = '0.4'
 ignore = '0.4.21'
 json-patch = '1.2.0'
 once_cell = '1.18.0'
@@ -26,20 +10,16 @@ regex = '1.10.2'
 serde_json = '1.0.108'
 sha2 = '0.10.8'
 toml = '0.8.8'
+tracing = '0.1'
 valico = '4.0.0'
-strum = {version = "0.25", features = ["derive"]}
-
-[dependencies.clap]
-features = ['derive', 'string']
-version = '4.4'
 
 [dependencies.bitbazaar]
 features = ['cli']
 version = '0.0.20'
 
-[dependencies.pyo3]
-features = ['extension-module', 'chrono']
-version = '0.20.0'
+[dependencies.clap]
+features = ['derive', 'string']
+version = '4.4'
 
 [dependencies.minijinja]
 features = ['loader', 'custom_syntax', 'preserve_order', 'json', 'urlencode']
@@ -53,16 +33,38 @@ version = '1.0.10'
 features = ['nightly', 'deadlock_detection', 'serde']
 version = '0.12.1'
 
+[dependencies.pyo3]
+features = ['extension-module', 'chrono']
+version = '0.20.0'
+
 [dependencies.serde]
 features = ['derive', 'rc']
 version = '1.0.193'
 
+[dependencies.strum]
+features = ['derive']
+version = '0.25'
+
+[lib]
+crate-type = ['cdylib']
+name = 'zetch'
+path = 'src/lib.rs'
+
+[package]
+edition = '2021'
+license = 'MIT'
+name = 'zetch'
+publish = false
+readme = 'README.md'
+version = '0.0.1'
+
+[profile]
+
 [profile.profiler]
-inherits = "release"  # Adds on top of the default release profile
-incremental = true
 debug = true
+incremental = true
+inherits = 'release'
 strip = false
 
-# Modifying the test runtime (from release is just so much faster)
 [profile.test]
-inherits = "release"  # Adds on top of the default release profile
+inherits = 'release'

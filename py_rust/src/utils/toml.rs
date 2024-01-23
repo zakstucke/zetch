@@ -1,6 +1,7 @@
-use crate::prelude::*;
 use error_stack::{Context, Report};
 use strum::Display;
+
+use crate::prelude::*;
 
 #[derive(Debug, Display)]
 pub enum TomlErr {
