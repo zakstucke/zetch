@@ -1,9 +1,9 @@
 # Ignore private folder and any file with private in the name:
 private/
 *private*
-# Except for etch files:
-!*private*.etch.*
-!*private*.*.etch
+# Except for zetch files:
+!*private*.zetch.*
+!*private*.*.zetch
 
 scratch_space.ipynb
 

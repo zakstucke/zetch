@@ -23,7 +23,7 @@ Binaries are available for:
 
 -   **Linux**: `x86_64`, `aarch64`, `i686`, `armv7l`, `musl-x86_64` & `musl-aarch64`
 -   **MacOS**: `x86_64` & `arm64`
--   **Windows**: `amd64` & `win32` (NOTE: disabled currently, see build workflow for bug that needs fixing)
+-   **Windows**: `amd64` & `win32`
 
 ## Usage
 

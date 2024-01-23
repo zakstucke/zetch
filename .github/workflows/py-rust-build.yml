@@ -22,17 +22,15 @@ jobs:
                 target: [x86_64, aarch64]
                 manylinux: [auto]
                 include:
-                    # Windows temporarily disabled - for some reason win aarch64 always fails with ld-link: error: could not open 'python311.lib': no such file or directory
-                    # Re-enable and fix (might be fixed by updates automatically) when windows needed
-                    # - os: windows
-                    #   ls: dir
-                    # - os: windows
-                    #   ls: dir
-                    #   target: i686
-                    #   python-architecture: x86
-                    # - os: windows
-                    #   ls: dir
-                    #   target: aarch64
+                    - os: windows
+                      ls: dir
+                    - os: windows
+                      ls: dir
+                      target: i686
+                      python-architecture: x86
+                    - os: windows
+                      ls: dir
+                      target: aarch64
                     - os: ubuntu
                       platform: linux
                       target: i686

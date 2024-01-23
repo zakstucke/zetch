@@ -12,7 +12,7 @@ initial_setup () {
         curl -fsSL https://bun.sh/install | bash # for macOS, Linux, and WSL
     fi
 
-    # Make sure nightly is installed as needed for formatting in pre-commit:
+    # Make sure nightly is installed as use nightly for formatting and checking:
     rustup toolchain install nightly
     # Make sure nextest is installed:
     cargo install cargo-nextest --locked
