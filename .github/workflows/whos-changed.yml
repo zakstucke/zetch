@@ -1,0 +1,35 @@
+name: "Who's Changed"
+
+on:
+    workflow_call:
+        outputs:
+            # Map the job outputs to the workflow outputs:
+            docs-changed:
+                description: Whether files relating to docs have changed or not
+                value: ${{ jobs.whos_changed.outputs.docs-changed }}
+            py-rust-changed:
+                description: Whether files relating to py_rust have changed or not
+                value: ${{ jobs.whos_changed.outputs.py-rust-changed }}
+
+jobs:
+    whos_changed:
+        runs-on: ubuntu-latest
+        # Map the outputs:
+        outputs:
+            docs-changed: ${{ steps.check.outputs.docs-changed }}
+            py-rust-changed: ${{ steps.check.outputs.py-rust-changed }}
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - uses: dorny/paths-filter@v2
+              id: check
+              with:
+                  filters: |
+                      docs-changed:
+                        - 'docs/**'
+                        - 'mkdocs.yml'
+                      py-rust-changed:
+                        - 'py_rust/**'

@@ -1,0 +1,6 @@
+- id: zetch
+  name: Zetch.
+  description: Run the zetch command on the repository.
+  entry: zetch
+  language: python
+  pass_filenames: false
