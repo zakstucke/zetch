@@ -31,7 +31,6 @@ jobs:
                     - os: windows
                       ls: dir
                       target: aarch64
-                      interpreter: 3.11 # Doesn't seem to be supported pre 3.11 for windows aarch64, get build errors with earlier versions
                     - os: ubuntu
                       platform: linux
                       target: i686
@@ -63,7 +62,7 @@ jobs:
 
             - uses: actions/setup-python@v4
               with:
-                  python-version: "3.11"
+                  python-version: "3.12"
                   architecture: ${{ matrix.python-architecture || 'x64' }}
 
             - name: copy in README and LICENSE from root
@@ -81,7 +80,7 @@ jobs:
               with:
                   target: ${{ matrix.target }}
                   manylinux: ${{ matrix.manylinux || 'auto' }}
-                  args: --manifest-path py_rust/Cargo.toml --release --out py_rust/dist --interpreter ${{ matrix.interpreter || '3.8 3.9 3.10 3.11 3.12' }}
+                  args: --manifest-path py_rust/Cargo.toml --release --out py_rust/dist --interpreter '3.8 3.9 3.10 3.11 3.12'
                   rust-toolchain: stable
                   docker-options: -e CI
 
