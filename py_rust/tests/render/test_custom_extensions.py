@@ -91,7 +91,7 @@ def uses_ctx(var):
         ),
     ],
 )
-def test_custom_func_various(template_src: str, static_ctx: dict[str, StaticCtx], expected: str):
+def test_custom_func_various(template_src: str, static_ctx: "dict[str, StaticCtx]", expected: str):
     """User defined custom functions."""
     with TmpFileManager() as manager:
         func_file = manager.tmpfile(

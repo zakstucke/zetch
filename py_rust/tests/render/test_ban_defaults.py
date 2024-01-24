@@ -71,7 +71,9 @@ from ..helpers.utils import check_single
         ),
     ],
 )
-def test_ban_defaults(extra_args: list[str], env: dict, expected: str, err: tp.Optional[str]):
+def test_ban_defaults(
+    extra_args: "list[str]", env: "dict[str, str]", expected: str, err: tp.Optional[str]
+):
     # Ban a default and should fail as isn't set:
     with TmpFileManager() as manager:
         with mock.patch.dict(os.environ, env):

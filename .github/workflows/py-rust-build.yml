@@ -75,7 +75,7 @@ jobs:
                   architecture: ${{ matrix.python-architecture || 'x64' }}
 
             - name: copy in README and LICENSE from root
-              run: cp README.md [<py_rust_folder>]/README.md && cp LICENSE.md [<py_rust_folder>]/LICENSE.md
+              run: cp README.md ./py_rust/README.md && cp LICENSE.md ./py_rust/LICENSE.md
 
             - name: build wheels
               uses: PyO3/maturin-action@v1

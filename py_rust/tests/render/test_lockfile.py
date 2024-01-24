@@ -84,7 +84,7 @@ def test_corrupt_lockfile(lock_contents: str):
         # Should have managed to recreate the lockfile:
         with open(lockfile_path, "r") as file:
             assert json.load(file) == {
-                "version": zetch.__version__,  # type: ignore
+                "version": zetch.__version__,
                 "files": {
                     str(template.relative_to(manager.root_dir)): zetch._hash_contents(
                         "Hello, World!"
@@ -102,7 +102,7 @@ def test_corrupt_lockfile(lock_contents: str):
 
         with open(lockfile_path, "r") as file:
             assert json.load(file) == {
-                "version": zetch.__version__,  # type: ignore
+                "version": zetch.__version__,
                 "files": {},
             }
 
@@ -147,7 +147,7 @@ def test_lockfile_only_write_when_needed():
         assert result["debug"]["written"] == [remove_template(template1)]
         with open(get_lockfile_path(manager.root_dir), "r") as file:
             assert json.load(file) == {
-                "version": zetch.__version__,  # type: ignore
+                "version": zetch.__version__,
                 "files": {
                     # Should be relative to the root_dir as that's where the lockfile is stored:
                     str(template1.relative_to(manager.root_dir)): zetch._hash_contents(

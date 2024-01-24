@@ -15,7 +15,7 @@ def render(
     config_file: tp.Optional[tp.Union[str, os.PathLike[str]]] = None,
     force: bool = False,
     verbose: bool = False,
-    extra_args: tp.Optional[list[str]] = None,
+    extra_args: tp.Optional["list[str]"] = None,
 ) -> RenderResult:
     args = ["zetch", "--debug", root]
 
@@ -58,7 +58,7 @@ def init(root: tp.Union[str, pathlib.Path]):
 
 
 def run(
-    args: list[str], custom_root: tp.Optional[pathlib.Path] = None, stdin: tp.Optional[str] = None
+    args: "list[str]", custom_root: tp.Optional[pathlib.Path] = None, stdin: tp.Optional[str] = None
 ) -> str:
     """Run an arbitrary command, returning stdout and err combined. Raises ValueError on non-zero exit code."""
     p1 = subprocess.run(args, capture_output=True, text=True, cwd=custom_root, input=stdin)

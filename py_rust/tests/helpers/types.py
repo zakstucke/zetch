@@ -1,10 +1,10 @@
-import typing as tp
+import typing_extensions as tp
 
 Coerce_T = tp.Literal["str", "int", "float", "bool", "json"]
 
 
 class CliCtx(tp.TypedDict):
-    commands: list[str]
+    commands: "list[str]"
     coerce: tp.NotRequired[Coerce_T]
     initial: tp.NotRequired[tp.Any]
 
@@ -29,24 +29,24 @@ class Engine(tp.TypedDict):
     comment_end: tp.NotRequired[str]
     keep_trailing_newline: tp.NotRequired[bool]
     allow_undefined: tp.NotRequired[bool]
-    custom_extensions: tp.NotRequired[list[str]]
+    custom_extensions: tp.NotRequired["list[str]"]
 
 
 class InputContext(tp.TypedDict):
-    static: tp.NotRequired[dict[str, StaticCtx]]
-    cli: tp.NotRequired[dict[str, CliCtx]]
-    env: tp.NotRequired[dict[str, EnvCtx]]
+    static: tp.NotRequired["dict[str, StaticCtx]"]
+    cli: tp.NotRequired["dict[str, CliCtx]"]
+    env: tp.NotRequired["dict[str, EnvCtx]"]
 
 
 class InputConfig(tp.TypedDict):
-    ignore_files: tp.NotRequired[list[str]]
-    exclude: tp.NotRequired[list[str]]
+    ignore_files: tp.NotRequired["list[str]"]
+    exclude: tp.NotRequired["list[str]"]
     engine: tp.NotRequired[Engine]
     context: tp.NotRequired[InputContext]
 
 
 class OutputConfig(InputConfig):
-    context: dict[str, tp.Any]  # type: ignore
+    context: "dict[str, tp.Any]"
 
 
 class DebugOutput(tp.TypedDict):

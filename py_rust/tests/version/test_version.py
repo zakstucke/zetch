@@ -13,7 +13,7 @@ from ..helpers import cli
         ["version"],
     ],
 )
-def test_cli_version(args: list[str]):
+def test_cli_version(args: "list[str]"):
     """Confirm the zetch version command works correctly."""
     res = cli.run(["zetch", *args])
     assert res.startswith("zetch {}".format(zetch.__version__)), res

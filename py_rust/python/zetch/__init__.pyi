@@ -1,6 +1,6 @@
 import typing as tp
 
-def register_function(func: tp.Callable) -> None:
+def register_function(func: tp.Callable) -> None:  # type: ignore
     """Register a custom function to be available in the template context.
 
     Example:

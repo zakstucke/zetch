@@ -32,8 +32,8 @@ def check_single(
     contents: str,
     expected: tp.Union[str, tp.Callable[[str], bool]],
     file_type="txt",
-    extra_args: tp.Optional[list[str]] = None,
-    extra_templates_written: tp.Optional[list[pathlib.Path]] = None,
+    extra_args: tp.Optional["list[str]"] = None,
+    extra_templates_written: tp.Optional["list[pathlib.Path]"] = None,
 ):
     template = manager.tmpfile(content=contents, suffix=".zetch.{}".format(file_type))
 

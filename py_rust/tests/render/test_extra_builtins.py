@@ -4,10 +4,10 @@ import datetime as dt
 import os
 import re
 import time
-import typing as tp
 from unittest import mock
 
 import pytest
+import typing_extensions as tp
 
 from ..helpers.tmp_file_manager import TmpFileManager
 from ..helpers.types import EnvCtx, StaticCtx
@@ -18,8 +18,8 @@ class BuiltinTestcase(tp.TypedDict):
     input: str
     # Either the output to expect, or a function that returns True if valid when passed the rendered result:
     expected: tp.Union[str, tp.Callable[[str], bool]]
-    static_ctx: tp.NotRequired[dict[str, StaticCtx]]
-    env_ctx: tp.NotRequired[dict[str, EnvCtx]]
+    static_ctx: tp.NotRequired["dict[str, StaticCtx]"]
+    env_ctx: tp.NotRequired["dict[str, EnvCtx]"]
     # These env variables will be mocked into the environment:
     env: tp.NotRequired[dict]
     # Defaults to "txt"
@@ -29,7 +29,7 @@ class BuiltinTestcase(tp.TypedDict):
 class BuiltinBase(tp.TypedDict):
     description: str
     # Each case is a lambda so its computed at test time, some of the values are dynamic e.g. datetime.now():
-    tests: list[tp.Callable[[], BuiltinTestcase]]
+    tests: "list[tp.Callable[[], BuiltinTestcase]]"
 
 
 class FunctionBuiltin(BuiltinBase):
@@ -41,8 +41,8 @@ class FilterBuiltin(BuiltinBase):
 
 
 class AllBuiltins(tp.TypedDict):
-    functions: dict[str, FunctionBuiltin]
-    filters: dict[str, FilterBuiltin]
+    functions: "dict[str, FunctionBuiltin]"
+    filters: "dict[str, FilterBuiltin]"
 
 
 # Defining with descriptions all inplace, to allow easy documentation building.
