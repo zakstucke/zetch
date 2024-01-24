@@ -31,7 +31,7 @@ jobs:
                     - os: windows
                       ls: dir
                       target: aarch64
-                      interpreter: 3.11 3.12 # Doesn't seem to be supported pre 3.11 for windows aarch64, get build errors with earlier versions
+                      interpreter: 3.11 # Doesn't seem to be supported pre 3.11 for windows aarch64, get build errors with earlier versions
                     - os: ubuntu
                       platform: linux
                       target: i686
@@ -63,7 +63,7 @@ jobs:
 
             - uses: actions/setup-python@v4
               with:
-                  python-version: "3.12"
+                  python-version: "3.11"
                   architecture: ${{ matrix.python-architecture || 'x64' }}
 
             - name: copy in README and LICENSE from root
