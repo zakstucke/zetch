@@ -36,6 +36,11 @@ jobs:
                   cache: pip
             - uses: ./.github/actions/install-pre-commit
 
+            # Formatting and checking uses nightly rather than stable:
+            - uses: dtolnay/rust-toolchain@nightly
+              with:
+                  components: rustfmt, clippy
+
             - name: Run QA
               run: |
                   ./dev_scripts/test.sh qa
