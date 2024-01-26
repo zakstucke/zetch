@@ -43,7 +43,7 @@ def test_cli_initial_fixes_circular_dep():
             )
 
     # Should fail due to circular dependency without initial:
-    with pytest.raises(ValueError, match="circ_dep.txt: No such file or directory"):
+    with pytest.raises(ValueError, match=utils.no_file_err_cross("circ_dep.txt")):
         run(False)
 
     # Should work with initial:

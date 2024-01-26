@@ -91,3 +91,10 @@ def cat_cmd_cross() -> str:
         return "cmd.exe /c type"
     else:
         return "cat"
+
+
+def no_file_err_cross(filename: str) -> str:
+    if os.name == "nt":
+        return "The system cannot find the file specified."
+    else:
+        return "{}: No such file or directory".format(filename)
