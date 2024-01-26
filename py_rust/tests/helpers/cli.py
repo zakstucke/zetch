@@ -12,7 +12,7 @@ class RenderResult(tp.TypedDict):
 
 def render(
     root: tp.Union[str, pathlib.Path],
-    config_file: tp.Optional[tp.Union[str, os.PathLike[str]]] = None,
+    config_file: tp.Optional[tp.Union[str, "os.PathLike[str]"]] = None,
     force: bool = False,
     verbose: bool = False,
     extra_args: tp.Optional["list[str]"] = None,

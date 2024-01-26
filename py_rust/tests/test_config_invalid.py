@@ -224,7 +224,7 @@ def test_failing_cli_errs():
     """Make sure errors in cli scripts are raised."""
     # Should error when script actually errs:
     with TmpFileManager() as manager:
-        with pytest.raises(ValueError, match="returned non zero exit code: 127"):
+        with pytest.raises(ValueError, match="returned non zero exit code: 2"):
             cli.render(
                 manager.root_dir,
                 manager.create_cfg(

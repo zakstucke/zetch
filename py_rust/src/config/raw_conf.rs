@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs, path::Path};
 
 use bitbazaar::{
-    cli::{run_cmd, CmdOut},
+    cli::{execute_bash, CmdErr, CmdOut},
     timeit,
 };
 use serde::{Deserialize, Serialize};
@@ -90,9 +90,18 @@ impl CtxCliVar {
 
         let runner = |command: &str| -> Result<CmdOut, Zerr> {
             debug!("Running command: {}", command);
-            let cmd_out = timeit!(format!("Cmd: {}", command).as_str(), { run_cmd(command) })
-                .change_context(Zerr::UserCommandError)
-                .change_context(Zerr::ContextLoadError)?;
+
+            let cmd_out = match timeit!(format!("Cmd: {}", command).as_str(), {
+                execute_bash(command)
+            }) {
+                Ok(cmd_out) => Ok(cmd_out),
+                Err(e) => match e.current_context() {
+                    CmdErr::InternalError => Err(e.change_context(Zerr::InternalError)),
+                    _ => Err(e
+                        .change_context(Zerr::UserCommandError)
+                        .change_context(Zerr::ContextLoadError)),
+                },
+            }?;
 
             if cmd_out.code != 0 {
                 return Err(zerr!(
