@@ -125,7 +125,7 @@ def test_read_config_working(
         ),
     ],
 )
-def test_read_config_fail(path, error_message):
+def test_read_config_fail(path: str, error_message: str):
     with pytest.raises(ValueError, match=re.escape(error_message)):
         run_read_config(sample_toml, path)
 
@@ -164,7 +164,7 @@ def test_read_var_working(
         ),
     ],
 )
-def test_read_var_fail(var, error_message):
+def test_read_var_fail(var: str, error_message: str):
     with pytest.raises(ValueError, match=re.escape(error_message)):
         run_read_var(sample_config, var)
 

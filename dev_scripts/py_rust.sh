@@ -21,7 +21,10 @@ ensure_venv () {
         source ./py_rust/.venv/bin/activate
     fi
 
+    ./dev_scripts/utils.sh py_install_if_missing typing-extensions
     ./dev_scripts/utils.sh py_install_if_missing maturin
+    ./dev_scripts/utils.sh py_install_if_missing pyright
+    ./dev_scripts/utils.sh py_install_if_missing pytest
 
     ./dev_scripts/utils.sh py_install_if_missing ruff
 }

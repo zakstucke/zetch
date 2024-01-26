@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs, path::Path};
 
 use bitbazaar::{
-    cli::{run_cmd, CmdOut},
+    cli::{execute_bash, CmdErr, CmdOut},
     timeit,
 };
 use serde::{Deserialize, Serialize};
@@ -90,19 +90,24 @@ impl CtxCliVar {
 
         let runner = |command: &str| -> Result<CmdOut, Zerr> {
             debug!("Running command: {}", command);
-            let cmd_out = timeit!(format!("Cmd: {}", command).as_str(), { run_cmd(command) })
-                .change_context(Zerr::UserCommandError)
-                .change_context(Zerr::ContextLoadError)?;
+
+            let cmd_out = match timeit!(format!("Cmd: {}", command).as_str(), {
+                execute_bash(command)
+            }) {
+                Ok(cmd_out) => Ok(cmd_out),
+                Err(e) => match e.current_context() {
+                    CmdErr::InternalError => Err(e.change_context(Zerr::InternalError)),
+                    _ => Err(e.change_context(Zerr::UserCommandError)),
+                },
+            }?;
 
             if cmd_out.code != 0 {
                 return Err(zerr!(
                     Zerr::UserCommandError,
-                    "Command '{}' returned non zero exit code: {}. Output: {}",
-                    command,
+                    "Returned non zero exit code: {}. Std output: {}",
                     cmd_out.code,
                     cmd_out.std_all()
-                )
-                .change_context(Zerr::ContextLoadError));
+                ));
             }
 
             Ok(cmd_out)
@@ -110,18 +115,19 @@ impl CtxCliVar {
 
         // Run each command before the last:
         for command in commands[..commands.len() - 1].iter() {
-            runner(command)?;
+            runner(command).attach_printable_lazy(|| format!("Command: '{command}'"))?;
         }
 
         // Run the last and store its stdout as the value:
-        let cmd_out = runner(&commands[commands.len() - 1])?;
+        let final_cmd = &commands[commands.len() - 1];
+        let cmd_out =
+            runner(final_cmd).attach_printable_lazy(|| format!("Command: '{final_cmd}'"))?;
         if cmd_out.stdout.trim().is_empty() {
             return Err(zerr!(
                 Zerr::UserCommandError,
-                "Implicit None. Final cli script returned nothing. Command '{}'.",
-                &commands[commands.len() - 1]
+                "Implicit None. Final cli script returned nothing.",
             )
-            .change_context(Zerr::ContextLoadError));
+            .attach_printable(format!("Command: '{final_cmd}'")));
         }
         let value = serde_json::Value::String(cmd_out.stdout);
 

@@ -6,6 +6,7 @@ __version__ = version("zetch")
 
 __all__ = ["__version__"]
 
+
 # Import the rust modules and top level fns:
 # https://www.maturin.rs/project_layout
 from ._rs import *  # type: ignore

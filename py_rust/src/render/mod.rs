@@ -124,9 +124,14 @@ fn render_inner(
     timeit!("Rendering templates & syncing files", {
         for template in templates {
             debug!("Rendering template: {}", template.rel_path);
-            let tmpl = env
-                .get_template(&template.rel_path)
-                .change_context(Zerr::InternalError)?;
+            let tmpl = match env.get_template(&template.rel_path) {
+                Ok(tmpl) => Ok(tmpl),
+                Err(e) => match e.kind() {
+                    minijinja::ErrorKind::BadEscape => Err(e).change_context(Zerr::RenderTemplateError).attach_printable("Bad string escape in template. If windows filepaths being used in the template, make sure they've been escaped with an extra backslash. E.g. '.\\\\Desktop\\\\file.txt'"),
+                    _ => Err(e).change_context(Zerr::InternalError),
+                },
+            }?;
+
             let compiled = match tmpl.render(context! {}) {
                 Ok(compiled) => compiled,
                 Err(e) => {

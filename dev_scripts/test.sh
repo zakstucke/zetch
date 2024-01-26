@@ -49,14 +49,30 @@ pre_till_success () {
 qa () {
     pre_till_success
 
+    ./dev_scripts/test.sh pyright
 
 }
 
 
+pyright () {
+    ./dev_scripts/py_rust.sh install
+    cd ./py_rust/
+    # Activate the target venv: (runs from windows in CI too)
+    if [[ "$OSTYPE" == "msys" ]]; then
+        source .venv/Scripts/activate
+    else
+        source .venv/bin/activate
+    fi
+    cd ..
+    python -m pyright ./py_rust
+
+    echo pyright OK.
+}
+
 
 py_rust () {
     # Build the package up to date in the specific virtualenv:
-    ./dev_scripts/py_rust.sh install py_rust/.venv
+    ./dev_scripts/py_rust.sh install ./py_rust/.venv
 
     cd py_rust
 
@@ -66,10 +82,6 @@ py_rust () {
     else
         source .venv/bin/activate
     fi
-
-    cd .. # This type of stuff could be fixed with hellscript
-    ./dev_scripts/utils.sh py_install_if_missing pytest
-    cd py_rust
 
     cargo nextest run
     python -m pytest $@

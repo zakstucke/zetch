@@ -4,10 +4,6 @@ use super::raw_conf::Coerce;
 use crate::prelude::*;
 
 pub fn coerce(value: Value, c_type: Option<Coerce>) -> Result<Value, Zerr> {
-    coerce_inner(value, c_type).change_context(Zerr::ContextLoadError)
-}
-
-fn coerce_inner(value: Value, c_type: Option<Coerce>) -> Result<Value, Zerr> {
     // Always strip whitespace from string inputs:
     let value = match value {
         Value::String(s) => Value::String(s.trim().to_string()),

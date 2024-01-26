@@ -1,3 +1,4 @@
+import os
 import pathlib
 import re
 import typing as tp
@@ -32,8 +33,8 @@ def check_single(
     contents: str,
     expected: tp.Union[str, tp.Callable[[str], bool]],
     file_type="txt",
-    extra_args: tp.Optional[list[str]] = None,
-    extra_templates_written: tp.Optional[list[pathlib.Path]] = None,
+    extra_args: tp.Optional["list[str]"] = None,
+    extra_templates_written: tp.Optional["list[pathlib.Path]"] = None,
 ):
     template = manager.tmpfile(content=contents, suffix=".zetch.{}".format(file_type))
 
@@ -71,3 +72,29 @@ def remove_template(filepath: pathlib.Path) -> str:
         raise ValueError(f"Could not find matcher in {filepath}")
 
     return str(out_path)
+
+
+def str_path_for_tmpl_writing(path: pathlib.Path) -> str:
+    r"""On windows paths in python have \\ rather than \'.
+
+    But this will cause problems if writing to template in tests.
+    This fn should wrap any paths being written to templates to handle edge cases.
+    """
+    if os.name == "nt":
+        return str(os.path.normpath(path).replace("\\", "\\\\"))
+    else:
+        return str(os.path.normpath(path))
+
+
+def cat_cmd_cross() -> str:
+    if os.name == "nt":
+        return "cmd.exe /c type"
+    else:
+        return "cat"
+
+
+def no_file_err_cross(filename: str) -> str:
+    if os.name == "nt":
+        return "The system cannot find the file specified."
+    else:
+        return "{}: No such file or directory".format(filename)
