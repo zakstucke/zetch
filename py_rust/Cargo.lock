@@ -149,9 +149,9 @@ checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 
 [[package]]
 name = "bitbazaar"
-version = "0.0.23"
+version = "0.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3572d2f022b0dff0c9020bdce3da6a97cfddb33efb7ebf95463c86ca9230a43a"
+checksum = "1ce2b4fdff4f41b3f17ca23aeb80334573716667a81cfccfacc015c5d66e1499"
 dependencies = [
  "chrono",
  "clap",

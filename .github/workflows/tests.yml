@@ -101,7 +101,7 @@ jobs:
               uses: taiki-e/install-action@nextest
             - uses: Swatinem/rust-cache@v2
               with:
-                  workspaces: "./rust -> target"
+                  workspaces: "./py_rust -> target"
 
             - uses: actions/setup-python@v4
               with:
