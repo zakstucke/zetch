@@ -47,14 +47,16 @@ def autodoc(base_py_path_str: str, out_folder_name: str):
             nav[parts_excluding_ignored] = doc_path.as_posix()
 
             with mkdocs_gen_files.open(full_doc_path, "w") as fd:
-                # It's a super weird one and I have almost no idea why its the case (probably because its the python extension)
-                # But mkdocs doesn't accept specifically py as the folder name, but does for everything else
-                # However it does work if you remove it from the start of the ident... super weird but can't find a better easy fix.
-                if parts[0] == "py":
-                    ident_parts = parts[1:]
-                else:
-                    ident_parts = parts
-                ident = ".".join(ident_parts)
+                # I have no idea why this was needed, but its not anymore...
+                # # It's a super weird one and I have almost no idea why its the case (probably because its the python extension)
+                # # But mkdocs doesn't accept specifically py as the folder name, but does for everything else
+                # # However it does work if you remove it from the start of the ident... super weird but can't find a better easy fix.
+                # if parts[0] == "py":
+                #     ident_parts = parts[1:]
+                # else:
+                #     ident_parts = parts
+                # ident = ".".join(ident_parts)
+                ident = ".".join(parts)
                 fd.write(f"::: {ident}")
 
         mkdocs_gen_files.set_edit_path(full_doc_path, path)
