@@ -31,7 +31,13 @@ pub fn process(
                 continue;
             }
         }
-        context.insert(key, value.consume()?);
+        context.insert(
+            key.clone(),
+            value
+                .consume()
+                .change_context(Zerr::ContextLoadError)
+                .attach_printable_lazy(|| format!("Ctx static var: '{key}'"))?,
+        );
     }
 
     // Now env vars:
@@ -81,15 +87,18 @@ pub fn process(
 
         context.insert(
             key.clone(),
-            value.consume(
-                &key,
-                // Check if the default is banned:
-                if let Some(banned) = banned_env_defaults.as_ref() {
-                    banned.contains(key.as_str())
-                } else {
-                    false
-                },
-            )?,
+            value
+                .consume(
+                    &key,
+                    // Check if the default is banned:
+                    if let Some(banned) = banned_env_defaults.as_ref() {
+                        banned.contains(key.as_str())
+                    } else {
+                        false
+                    },
+                )
+                .change_context(Zerr::ContextLoadError)
+                .attach_printable_lazy(|| format!("Ctx env var: '{key}'"))?,
         );
     }
 
@@ -114,7 +123,10 @@ pub fn process(
 
         handles.push(std::thread::spawn(
             move || -> Result<(String, serde_json::Value), Zerr> {
-                let value = value.consume()?;
+                let value = value
+                    .consume()
+                    .change_context(Zerr::ContextLoadError)
+                    .attach_printable_lazy(|| format!("Ctx cli var: '{key}'"))?;
                 Ok((key, value))
             },
         ));

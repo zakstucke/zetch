@@ -7,10 +7,9 @@ from unittest import mock
 import pytest
 import zetch
 
-from .helpers import cli
+from .helpers import cli, utils
 from .helpers.tmp_file_manager import TmpFileManager
 from .helpers.types import InputConfig
-from .helpers.utils import check_single
 
 
 def cfg_str(config: InputConfig) -> str:
@@ -169,7 +168,7 @@ def test_parallelized_context_cli_commands():
     """
     with TmpFileManager() as manager:
         before = time.time()
-        check_single(
+        utils.check_single(
             manager,
             manager.create_cfg(
                 {
@@ -250,7 +249,12 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                         "context": {
                             "cli": {
                                 "FOO": {
-                                    "commands": ["cat {}".format(tmpfile)],
+                                    "commands": [
+                                        '{} "{}"'.format(
+                                            utils.cat_cmd_cross(),
+                                            utils.str_path_for_tmpl_writing(tmpfile),
+                                        )
+                                    ],
                                     "coerce": as_type,
                                 }
                             }

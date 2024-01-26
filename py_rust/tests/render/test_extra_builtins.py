@@ -45,6 +45,10 @@ class AllBuiltins(tp.TypedDict):
     filters: "dict[str, FilterBuiltin]"
 
 
+def now() -> dt.datetime:
+    return dt.datetime.now(dt.timezone.utc)
+
+
 # Defining with descriptions all inplace, to allow easy documentation building.
 ENGINE_BUILTINS: AllBuiltins = {
     "filters": {
@@ -129,8 +133,8 @@ ENGINE_BUILTINS: AllBuiltins = {
                     "input": "{{ now()|dateformat }}",
                     # Rust doesn't include the 0 before days like python does, making python act the same:
                     "expected": "{month_name} {dt.day} {dt.year}".format(
-                        month_name=dt.datetime.utcnow().strftime("%b"),
-                        dt=dt.datetime.utcnow(),
+                        month_name=now().strftime("%b"),
+                        dt=now(),
                     ),
                 },
                 lambda: {
@@ -145,7 +149,7 @@ ENGINE_BUILTINS: AllBuiltins = {
             "tests": [
                 lambda: {
                     "input": "{{ now()|timeformat }}",
-                    "expected": dt.datetime.utcnow().strftime("%H:%M"),
+                    "expected": now().strftime("%H:%M"),
                 },
                 lambda: {
                     "input": "{{ \"2018-04-01T15:20:15-07:00\"|timeformat(format='long') }}",
@@ -161,9 +165,9 @@ ENGINE_BUILTINS: AllBuiltins = {
                     "input": "{{ now()|datetimeformat }}",
                     # Rust doesn't include the 0 before days like python does, making python act the same:
                     "expected": "{month_name} {dt.day} {dt.year} {time}".format(
-                        month_name=dt.datetime.utcnow().strftime("%b"),
-                        dt=dt.datetime.utcnow(),
-                        time=dt.datetime.utcnow().strftime("%H:%M"),
+                        month_name=now().strftime("%b"),
+                        dt=now(),
+                        time=now().strftime("%H:%M"),
                     ),
                 },
                 lambda: {
@@ -206,9 +210,9 @@ def wait_for_new_minute():
 
     Prevents inaccuracy in tests that rely on the current minute. Not easy to mock as going between python and rust.
     """
-    now = dt.datetime.utcnow()
-    if now.second > 59:
-        time.sleep((60 - now.second) + 0.1)
+    time_now = now()
+    if time_now.second > 59:
+        time.sleep((60 - time_now.second) + 0.1)
 
 
 @pytest.mark.parametrize(

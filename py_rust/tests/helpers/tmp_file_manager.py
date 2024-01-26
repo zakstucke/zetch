@@ -3,6 +3,7 @@ import pathlib
 import shutil
 import tempfile
 import typing as tp
+import uuid
 
 import zetch
 
@@ -52,14 +53,18 @@ class TmpFileManager:
         if parent is None:
             parent = self.root_dir
 
-        tmp_file = tempfile.NamedTemporaryFile(delete=False, dir=parent, suffix=suffix)
-        with open(tmp_file.name, "w") as file:
-            file.write(content)
-
-        final_path = pathlib.Path(tmp_file.name)
+        filename: str
         if full_name is not None:
-            os.rename(tmp_file.name, os.path.join(parent, full_name))
-            final_path = pathlib.Path(os.path.join(parent, full_name))
+            filename = full_name
+        elif suffix is not None:
+            filename = str(uuid.uuid4()) + suffix
+        else:
+            filename = str(uuid.uuid4())
+
+        final_path = pathlib.Path(os.path.join(parent, filename))
+
+        with open(final_path, "w") as file:
+            file.write(content)
 
         self.files_created += 1
 
@@ -85,14 +90,11 @@ class TmpFileManager:
         if parent is None:
             parent = self.root_dir
 
-        tmp_dir = tempfile.mkdtemp(dir=parent)
-
-        if name is not None:
-            os.rename(tmp_dir, os.path.join(parent, name))
-            tmp_dir = os.path.join(parent, name)
+        final_path = pathlib.Path(os.path.join(parent, str(uuid.uuid4()) if name is None else name))
+        os.mkdir(final_path)
 
         self.dirs_created += 1
-        return pathlib.Path(tmp_dir)
+        return final_path
 
     def writer(self, path: pathlib.Path, content: str):
         """A replacement for the default write function in process(). To allow for temporary creations during tests."""

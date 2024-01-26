@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
+from ..helpers import utils
 from ..helpers.tmp_file_manager import TmpFileManager
 from ..helpers.types import Engine, InputConfig
-from ..helpers.utils import check_single
 
 
 @pytest.mark.parametrize(
@@ -16,7 +16,7 @@ from ..helpers.utils import check_single
         # Absolute:
         (
             lambda manager: manager.tmpfile(content="Hello, {{ var }}!", suffix=".txt"),
-            lambda other_tmpl: str(other_tmpl),
+            lambda other_tmpl: other_tmpl,
         ),
         # Relative:
         (
@@ -27,7 +27,7 @@ from ..helpers.utils import check_single
 )
 def test_include_other_template(
     other_tmpl_creator: tp.Callable[[TmpFileManager], Path],
-    other_tmpl_path_creator: tp.Callable[[Path], str],
+    other_tmpl_path_creator: tp.Callable[[Path], Path],
 ):
     """Other arbitrary files can be included in a template.
 
@@ -39,11 +39,11 @@ def test_include_other_template(
         with TmpFileManager() as other_manager:
             other_tmpl = other_tmpl_creator(manager)
             other_tmpl_path = other_tmpl_path_creator(other_tmpl)
-            check_single(
+            utils.check_single(
                 manager,
                 # Putting config in a different dir to make sure they're not resolving relative to the config file:
                 other_manager.create_cfg({"context": {"static": {"var": {"value": "World"}}}}),
-                f"{{% include '{other_tmpl_path}' %}}",
+                f"{{% include '{utils.str_path_for_tmpl_writing(other_tmpl_path)}' %}}",
                 "Hello, World!",
             )
 
@@ -74,7 +74,7 @@ def test_include_other_template(
 def test_engine_misc_syntax(template_src: str, config: InputConfig, expected: str):
     """Confirm random native rendering functionality works."""
     with TmpFileManager() as manager:
-        check_single(manager, manager.create_cfg(config), template_src, expected)
+        utils.check_single(manager, manager.create_cfg(config), template_src, expected)
 
 
 DEFAULT_TEMPLATE_SRC = "Hello, {{ var }}!{# this is an ignored comment #}\nmybool is {% if mybool %}True{% else %}False{% endif %}\n"
@@ -141,7 +141,7 @@ DEFAULT_TEMPLATE_SRC = "Hello, {{ var }}!{# this is an ignored comment #}\nmyboo
 def test_engine_config(template_src: str, engine_config: Engine, expected: str):
     """Confirm engine defaults are as expected & all overrides work."""
     with TmpFileManager() as manager:
-        check_single(
+        utils.check_single(
             manager,
             manager.create_cfg(
                 {
@@ -207,7 +207,7 @@ def test_allow_undefined(
     """Check errors on unknown context when no allow_defined or allow_defined is False, but when true should work fine."""
     with TmpFileManager() as manager:
         if not expected_is_err_match:
-            check_single(manager, manager.create_cfg(config), template_src, expected)
+            utils.check_single(manager, manager.create_cfg(config), template_src, expected)
         else:
             with pytest.raises(ValueError, match=re.escape(expected)):
-                check_single(manager, manager.create_cfg(config), template_src, expected)
+                utils.check_single(manager, manager.create_cfg(config), template_src, expected)

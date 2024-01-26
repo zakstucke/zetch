@@ -1,10 +1,11 @@
 import os
+import pathlib
 
 import pytest
 
+from ..helpers import utils
 from ..helpers.tmp_file_manager import TmpFileManager
 from ..helpers.types import InputConfig
-from ..helpers.utils import check_single
 
 
 def test_cli_initial_fixes_circular_dep():
@@ -18,7 +19,12 @@ def test_cli_initial_fixes_circular_dep():
                     "cli": {
                         "VAR": {
                             "commands": [
-                                "cat {}".format(os.path.join(manager.root_dir, "circ_dep.txt"))
+                                '{} "{}"'.format(
+                                    utils.cat_cmd_cross(),
+                                    utils.str_path_for_tmpl_writing(
+                                        pathlib.Path(os.path.join(manager.root_dir, "circ_dep.txt"))
+                                    ),
+                                )
                             ],
                         },
                     }
@@ -28,7 +34,7 @@ def test_cli_initial_fixes_circular_dep():
             if use_initial:
                 config["context"]["cli"]["VAR"]["initial"] = "foo"
 
-            check_single(
+            utils.check_single(
                 manager,
                 manager.create_cfg(config),
                 "{{ VAR }}",

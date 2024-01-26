@@ -1,3 +1,4 @@
+import os
 import pathlib
 import re
 import typing as tp
@@ -71,3 +72,22 @@ def remove_template(filepath: pathlib.Path) -> str:
         raise ValueError(f"Could not find matcher in {filepath}")
 
     return str(out_path)
+
+
+def str_path_for_tmpl_writing(path: pathlib.Path) -> str:
+    r"""On windows paths in python have \\ rather than \'.
+
+    But this will cause problems if writing to template in tests.
+    This fn should wrap any paths being written to templates to handle edge cases.
+    """
+    if os.name == "nt":
+        return str(os.path.normpath(path).replace("\\", "\\\\"))
+    else:
+        return str(os.path.normpath(path))
+
+
+def cat_cmd_cross() -> str:
+    if os.name == "nt":
+        return "type"
+    else:
+        return "cat"
