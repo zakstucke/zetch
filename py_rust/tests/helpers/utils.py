@@ -88,6 +88,6 @@ def str_path_for_tmpl_writing(path: pathlib.Path) -> str:
 
 def cat_cmd_cross() -> str:
     if os.name == "nt":
-        return "type"
+        return "cmd.exe /c type"
     else:
         return "cat"
