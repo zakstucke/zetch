@@ -11,8 +11,7 @@ on:
 
 jobs:
     build:
-        name: >
-            build on ${{ matrix.platform || matrix.os }} (${{ matrix.target }} - ${{ matrix.manylinux || 'auto' }})
+        name: build on ${{ matrix.os }} (${{ matrix.target }} - ${{ matrix.interpreter || 'all' }}${{ matrix.os == 'linux' && format(' - {0}', matrix.manylinux == 'auto' && 'manylinux' || matrix.manylinux) || '' }})
 
         strategy:
             fail-fast: true # Want release to cancel if any fail, so may as well fail fast to save some minutes
@@ -47,21 +46,20 @@ jobs:
                       target: aarch64
 
                     # macos;
-                    # all versions x86_64:
                     - os: macos
                       target: x86_64
-                    # arm for older pythons <3.10 which can't be run on the arm hardware for PGO
                     - os: macos
                       target: aarch64
-                      interpreter: 3.8 3.9
+
                     # windows;
                     - os: windows
                       target: i686
                       python-architecture: x86
-                    # aarch64 only 3.11 and up, also not PGO optimized
                     - os: windows
                       target: aarch64
+                      # Windows arm only supports python 3.11 and up:
                       interpreter: 3.11 3.12
+
         runs-on: ${{ (matrix.os == 'linux' && 'ubuntu') || matrix.os }}-latest
 
         steps:
