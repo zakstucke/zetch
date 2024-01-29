@@ -86,14 +86,9 @@ def test_schema_directive():
         # Should run successfully, not update the config file as directive hasn't changed:
         cli.render(manager.root_dir)
         assert get_directive() == first_directive
-        assert get_change_time() == change_time
+        if os.name != "nt":  # Windows change uses dummy values dont test
+            assert get_change_time() == change_time
         assert_unchanged_config()
-
-        def fake_directive():
-            with open(config_path, "w") as f:
-                lines = correct_contents.split("\n")
-                lines[0] = "{}foobar".format(prefix)
-                f.write("\n".join(lines))
 
         # Should auto replace invalid:
         with open(config_path, "w") as f:
@@ -110,5 +105,6 @@ def test_schema_directive():
 
         # Shouldn't touch again:
         cli.render(manager.root_dir)
-        assert get_change_time() == new_change_time
+        if os.name != "nt":  # Windows change uses dummy values dont test
+            assert get_change_time() == new_change_time
         assert_unchanged_config()
