@@ -423,13 +423,13 @@ def test_custom_ext_nice_user_invalid_errs(
 # DONE version
 # DONE setup that are run sequentially (e.g. npm i)
 # DONE get everything out into bitbazaar that's possible
-# TODO fix schema - not sure why its not working
-# TODO on config parsing, make sure the schema directive is at the correct version, update the config file if not
-# TODO update static
+# DONE fixed branch locking
+# DONE fix the windows binary build, if saying usable by all then this will be needed.
+# DONE on config parsing, make sure the schema directive is at the correct version, update the config file if not
 # TODO allow replacing the matcher
+# TODO fix schema - not sure why its not working
+# TODO update static
 # TODO ruff and pyright checking in tests, connected to requires_python correctly
 # TODO think about interop with jinja,cookiecutter,copier,etc
 # TODO rust cli variant
-# TODO fixed branch locking
 # TODO decide and document optimal formatting, probably using scolvins and making sure it can working with custom extensions.
-# Fix the windows binary build, if saying usable by all then this will be needed.
