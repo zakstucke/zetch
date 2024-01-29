@@ -100,7 +100,8 @@ def test_schema_directive():
         cli.render(manager.root_dir)
         assert get_directive() == first_directive
         new_change_time = get_change_time()
-        assert new_change_time > change_time
+        if os.name != "nt":  # Windows change uses dummy values dont test
+            assert new_change_time > change_time
         assert_unchanged_config()
 
         # Shouldn't touch again:
