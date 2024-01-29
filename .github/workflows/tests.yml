@@ -90,7 +90,7 @@ jobs:
 
                     # Make sure other os types work on newest version:
                     # - { python: "3.12", os: "macOS-latest" } # Mac uses 10x minutes, skipping for now considering devs usually use mac and v similar to linux
-                    - { python: "3.12", os: "windows-2019" } # 2x minutes, most different architecture so worth testing
+                    - { python: "3.12", os: "windows-latest" } # 2x minutes, most different architecture so worth testing
 
         steps:
             - uses: actions/checkout@v4
@@ -118,6 +118,6 @@ jobs:
                   ./dev_scripts/test.sh py_rust
 
             - name: Run tests (windows)
-              if: matrix.os == 'windows-2019'
+              if: matrix.os == 'windows-latest'
               run: |
                   bash ./dev_scripts/test.sh py_rust
