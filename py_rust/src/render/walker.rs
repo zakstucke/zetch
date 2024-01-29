@@ -127,10 +127,16 @@ fn try_regexes_and_rewrite(
 pub fn find_templates(
     root: &Path,
     walker: WalkBuilder,
-    matcher_str: &str,
+    matchers: &[String],
 ) -> Result<Vec<super::template::Template>, Zerr> {
-    let middle_regex = get_middle_regex(matcher_str);
-    let end_regex = get_end_regex(matcher_str);
+    let regex_pairs = matchers
+        .iter()
+        .map(|matcher| {
+            let middle_regex = get_middle_regex(matcher);
+            let end_regex = get_end_regex(matcher);
+            (middle_regex, end_regex)
+        })
+        .collect::<Vec<_>>();
 
     let mut templates = vec![];
     let mut files_checked = 0;
@@ -138,15 +144,19 @@ pub fn find_templates(
         let entry = entry.change_context(Zerr::InternalError)?;
         if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
             let filename = entry.file_name().to_string_lossy();
-            if let Some(compiled_name) =
-                try_regexes_and_rewrite(&filename, &middle_regex, &end_regex)
-            {
-                templates.push(super::template::Template::new(
-                    root.into(),
-                    entry.path().to_path_buf(),
-                    // Replacing the name with the compiled name:
-                    entry.path().parent().unwrap().join(compiled_name),
-                ));
+            for (middle_regex, end_regex) in regex_pairs.iter() {
+                if let Some(compiled_name) =
+                    try_regexes_and_rewrite(&filename, middle_regex, end_regex)
+                {
+                    templates.push(super::template::Template::new(
+                        root.into(),
+                        entry.path().to_path_buf(),
+                        // Replacing the name with the compiled name:
+                        entry.path().parent().unwrap().join(compiled_name),
+                    ));
+                    // Don't match twice with different matchers:
+                    break;
+                }
             }
         }
         files_checked += 1;
@@ -198,7 +208,7 @@ pub fn get_template_matcher_rewrite_mapping(
     old_matcher: &str,
     new_matcher: &str,
 ) -> Result<Vec<(PathBuf, PathBuf)>, Zerr> {
-    let templates = find_templates(root, create(args, root, conf)?, old_matcher)?;
+    let templates = find_templates(root, create(args, root, conf)?, &[old_matcher.to_string()])?;
 
     let middle_regex = get_middle_regex(old_matcher);
     let end_regex = get_end_regex(old_matcher);

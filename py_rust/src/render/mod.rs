@@ -55,6 +55,16 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
                 .map(|t| t.out_path.display().to_string())
                 .collect(),
             identical: identical.iter().map(|t| t.rel_path.clone()).collect(),
+            matched_templates: {
+                let mut all = vec![];
+                for tmpl in written.iter() {
+                    all.push(tmpl.rel_path.clone())
+                }
+                for tmpl in identical.iter() {
+                    all.push(tmpl.rel_path.clone())
+                }
+                all
+            },
             lockfile_modified: lockfile.modified,
         };
 
@@ -109,7 +119,7 @@ fn render_inner(
     })?;
 
     let templates = timeit!("Traversing filesystem & identifying templates", {
-        self::walker::find_templates(&render_args.root, walker, "zetch")
+        self::walker::find_templates(&render_args.root, walker, conf.matchers.as_slice())
     })?;
 
     let mut identical = Vec::new();

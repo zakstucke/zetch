@@ -29,6 +29,33 @@ pub fn pre_validate(value: &serde_json::Value) -> Result<(), Zerr> {
 
 /// Extra validation & cleaning to do on the created config object.
 pub fn post_validate(conf: &mut RawConfig, config_path: &Path) -> Result<(), Zerr> {
+    // Make sure at least one matcher has been provided:
+    if conf.matchers.is_empty() {
+        return Err(zerr!(
+            Zerr::ConfigInvalid,
+            "[matchers]: must have at least one template matcher. e.g. ['zetch']",
+        ));
+    }
+
+    // Make sure matchers only contain numbers, lowercase letters, dashes and underscores:
+    let matchers_regex = Regex::new(r"^[a-z0-9_-]+$").unwrap();
+    for matcher in conf.matchers.iter() {
+        if matcher.is_empty() {
+            return Err(zerr!(
+                Zerr::ConfigInvalid,
+                "[matchers]: cannot be empty string."
+            ));
+        }
+
+        if !matchers_regex.is_match(matcher) {
+            return Err(zerr!(
+                Zerr::ConfigInvalid,
+                "[matchers]: lowercase letters, numbers, dashes and underscores only in matchers (a-z 0-9 _ -). Not: '{}'",
+                matcher
+            ));
+        }
+    }
+
     // Check stat.value is not empty string, plus same for env.default (if provided):
     for (key, value) in conf.context.stat.iter() {
         validate_not_empty_string(format!("[context.static.{}.value]", key), &value.value)?;

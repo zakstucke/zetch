@@ -13,6 +13,7 @@ pub struct Config {
     pub exclude: Vec<String>,
     pub engine: Engine,
     pub ignore_files: Vec<String>,
+    pub matchers: Vec<String>,
 }
 
 pub fn process(
@@ -143,6 +144,7 @@ pub fn process(
         exclude: raw.exclude,
         engine: raw.engine,
         ignore_files: raw.ignore_files,
+        matchers: raw.matchers,
     };
 
     debug!("Processed config: \n{:#?}", config);

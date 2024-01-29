@@ -37,13 +37,56 @@ pub fn init(_args: &InitCommand) -> Result<(), Zerr> {
     Ok(())
 }
 
+static SCHEMA_DIRECTIVE_PREFIX: &str = "#:schema ";
+
+/// The directive that should be placed at the top of the config file to enable linting and descriptions.
+///
+/// Note this should be prepended with `"#:schema"`
+fn get_schema_directive() -> String {
+    format!(
+        "https://github.com/zakstucke/zetch/blob/v{}/py_rust/src/config/schema.json",
+        env!("CARGO_PKG_VERSION")
+    )
+}
+
+/// Should be called by the config loader that reads the contents & has access to the config path.
+/// Will return the config contents with the updated schema directive if changed.
+/// Will not modify the formatting or any other part of the config file.
+///
+/// The caller must rewrite the updated config file if returned.
+pub fn update_schema_directive_if_needed(contents: &str) -> Option<String> {
+    for (index, line) in contents.lines().enumerate() {
+        let line = line.trim(); // Ignore any whitespace
+        if let Some(old_directive) = line.strip_prefix(SCHEMA_DIRECTIVE_PREFIX) {
+            let cur_directive = get_schema_directive();
+            if old_directive != cur_directive {
+                let mut new_contents: Vec<&str> = contents.lines().collect();
+                let replacement = format!("{}{}", SCHEMA_DIRECTIVE_PREFIX, cur_directive);
+                new_contents[index] = &replacement;
+                warn!(
+                    "Found old config schema directive, updating from '{line}' to '{replacement}'."
+                );
+                return Some(new_contents.join("\n"));
+            }
+        } else if !line.is_empty() {
+            // If there's a line with contents before finding a schema, no schema so break:
+            break;
+        }
+    }
+    None
+}
+
 fn get_default_conf(gitignore_exists: bool) -> String {
     format!(
-        r#"#:schema https://github.com/zakstucke/zetch/blob/v{}/py_rust/src/config/schema.json
+        r#"{}{}
 
 ignore_files = [{}] {}
 
 exclude = []
+
+# Matchers zetch will use to identify templates.
+# E.g. by default files like foo.zetch.txt & foo.txt.zetch are matched.
+matchers = ["zetch"]
 
 [engine]
 keep_trailing_newline = true
@@ -59,7 +102,8 @@ BAR = {{ default = "bar" }}
 [context.cli]
 BAZ = {{ commands = ["echo 1"], coerce = "int" }}
 "#,
-        env!("CARGO_PKG_VERSION"),
+        SCHEMA_DIRECTIVE_PREFIX,
+        get_schema_directive(),
         if gitignore_exists {
             "\".gitignore\""
         } else {

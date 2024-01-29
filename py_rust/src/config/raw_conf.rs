@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, path::Path};
 
 use bitbazaar::{
     cli::{execute_bash, CmdErr, CmdOut},
@@ -7,7 +7,7 @@ use bitbazaar::{
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use super::{coerce, engine::Engine};
+use super::{coerce, engine::Engine, src_read::read_and_auto_update};
 use crate::prelude::*;
 
 // String literal of json, str, int, float, bool:
@@ -169,6 +169,12 @@ pub struct RawConfig {
     pub engine: Engine,
     #[serde(default = "Vec::new")]
     pub ignore_files: Vec<String>,
+    #[serde(default = "default_matchers")]
+    pub matchers: Vec<String>,
+}
+
+fn default_matchers() -> Vec<String> {
+    vec!["zetch".into()]
 }
 
 impl RawConfig {
@@ -200,8 +206,7 @@ impl RawConfig {
     }
 
     fn from_toml_inner(config_path: &Path) -> Result<Self, Zerr> {
-        // Config path should have already been validated to exist:
-        let contents = fs::read_to_string(config_path).change_context(Zerr::InternalError)?;
+        let contents = read_and_auto_update(config_path)?;
 
         // Decode directly the toml directly into serde/json, using that internally:
         let json: serde_json::Value = match toml::from_str(&contents) {

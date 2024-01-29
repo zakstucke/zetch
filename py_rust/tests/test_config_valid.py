@@ -136,6 +136,21 @@ def cfg_str(config: InputConfig) -> str:
                 "custom_extensions": [],
             },
         ),
+        # Matchers:
+        (
+            {},
+            "matchers",
+            # Defaults to zetch
+            cfg_str({}),
+            ["zetch"],
+        ),
+        (
+            {},
+            "matchers",
+            # lowercase, numbers, dashes, underscores should be allowed:
+            cfg_str({"matchers": ["foo", "foo-bar_ree", "d77"]}),
+            ["foo", "foo-bar_ree", "d77"],
+        ),
     ],
 )
 def test_read_config(

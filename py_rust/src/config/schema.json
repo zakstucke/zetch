@@ -2,6 +2,14 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
+        "matchers": {
+            "type": "array",
+            "description": "Custom template matchers. Zetch will treat any files containing this matcher as a file extension, or intermediary extension as a renderable template. Lower case alphanumeric characters only. Defaults to [\"zetch\"].",
+            "default": ["zetch"],
+            "items": {
+                "type": "string"
+            }
+        },
         "ignore_files": {
             "type": "array",
             "description": "Files to be loaded as git-style ignore files, the contents of which will be excluded from the template search. Relative paths are resolved relative to the config file's directory.",

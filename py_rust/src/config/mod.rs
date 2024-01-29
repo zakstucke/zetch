@@ -2,6 +2,7 @@ mod coerce;
 mod engine;
 mod process;
 mod raw_conf;
+mod src_read;
 mod validate;
 
 use std::path::{Path, PathBuf};
