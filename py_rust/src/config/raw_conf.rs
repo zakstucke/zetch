@@ -169,6 +169,12 @@ pub struct RawConfig {
     pub engine: Engine,
     #[serde(default = "Vec::new")]
     pub ignore_files: Vec<String>,
+    #[serde(default = "default_matchers")]
+    pub matchers: Vec<String>,
+}
+
+fn default_matchers() -> Vec<String> {
+    vec!["zetch".into()]
 }
 
 impl RawConfig {

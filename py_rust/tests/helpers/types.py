@@ -40,6 +40,7 @@ class InputContext(tp.TypedDict):
 
 class InputConfig(tp.TypedDict):
     ignore_files: tp.NotRequired["list[str]"]
+    matchers: tp.NotRequired["list[str]"]
     exclude: tp.NotRequired["list[str]"]
     engine: tp.NotRequired[Engine]
     context: tp.NotRequired[InputContext]

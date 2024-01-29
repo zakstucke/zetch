@@ -209,6 +209,19 @@ def test_incorrect_config():
                 ),
             )
 
+        # "matchers" isn't an array:
+        with pytest.raises(
+            ValueError,
+            match=re.escape("[matchers]: Expected an array."),
+        ):
+            cli.render(
+                manager.root_dir,
+                manager.tmpfile(
+                    "matchers = 'foo'\n",
+                    suffix=".toml",
+                ),
+            )
+
 
 def test_missing_env_var():
     """Confirm missing env vars included in context raise nice error when no default."""

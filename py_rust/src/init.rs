@@ -84,6 +84,10 @@ ignore_files = [{}] {}
 
 exclude = []
 
+# Matchers zetch will use to identify templates.
+# E.g. by default files like foo.zetch.txt & foo.txt.zetch are matched.
+matchers = ["zetch"]
+
 [engine]
 keep_trailing_newline = true
 allow_undefined = false
