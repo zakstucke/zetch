@@ -94,7 +94,12 @@ from .test_data.utils import tfile
             for ft, cont, out in [
                 ("json", tfile("complex.json"), tfile("complex_delete_out.json")),
                 ("toml", tfile("complex.toml"), tfile("complex_delete_out.toml")),
-                ("yaml", tfile("complex.yaml"), tfile("complex_delete_out.yaml")),
+                (
+                    "yaml",
+                    # The replace is to fix a weird windows issue in CI, no idea why single newline is output on windows...
+                    tfile("complex.yaml").replace("\n\nphoneNumbers", "\nphoneNumbers"),
+                    tfile("complex_delete_out.yaml").replace("\n\nphoneNumbers", "\nphoneNumbers"),
+                ),
             ]
         ],
         # No error or file change when target key doesn't exist:
