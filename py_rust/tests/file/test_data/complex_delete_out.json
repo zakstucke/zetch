@@ -1,0 +1,37 @@
+// Comment at start of file
+{
+  // This is a sample JSON file with various JSON features and comments (JSONC)
+
+  "name": "John Doe", // Inline comment
+
+  "age": 30, /* Multiline
+                  comment */
+
+  "isStudent": false,
+
+  "address": {
+    "street": "123 Main St",
+    "city": "Anytown",
+    "zipcode": "12345"
+  },
+
+  "phoneNumbers": [
+    {
+      "type": "home",
+      "number": "123-456-7890" // This is a home phone number
+    },
+    // Comment in middle of array
+    {
+      "number": "987-654-3210" // This is a work phone number
+    },
+    // Comment at end of array
+  ],
+
+  /*
+        Nested object with additional information
+    */
+  "additionalInfo": {
+    "hobbies": ["reading", "swimming", "cooking"],
+    "isMarried": true
+  }
+}// Comment at end of file

@@ -1,0 +1,24 @@
+# This is a sample TOML file with various TOML features and comments
+
+name = "John Doe"  # Inline comment
+age = 30  # Multiline
+isStudent = false
+
+[address]
+street = "123 Main St"
+city = "Anytown"
+zipcode = "12345"
+
+[[phoneNumbers]]
+type = "home"
+number = "123-456-7890"  # This is a home phone number
+
+[[phoneNumbers]]
+number = "987-654-3210"  # This is a work phone number
+
+[additionalInfo]
+# Nested object with additional information
+hobbies = ["reading", "swimming", "cooking"]
+isMarried = true
+
+# Comment at end of file

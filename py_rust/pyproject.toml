@@ -36,6 +36,7 @@ classifiers = [
   'Programming Language :: Rust',
   'License :: OSI Approved',
 ]
+dependencies = ["ruamel.yaml>=0.18.0,<=0.19.0"]
 
 [project.urls]
 "Sourcecode" = "https://github.com/zakstucke/zetch"

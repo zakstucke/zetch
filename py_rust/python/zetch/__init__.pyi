@@ -33,11 +33,9 @@ def context() -> dict[str, tp.Any]:
     """
     ...
 
-def _toml_update(
-    initial: str, update: tp.Any | None = None, remove: list[list[str]] | None = None
-) -> str: ...
+def _toml_create(data: tp.Any) -> str: ...
 def _hash_contents(contents: str) -> str: ...
 
 __version__: str
 
-__all__ = ["__version__", "_hash_contents", "_toml_update"]
+__all__ = ["__version__", "_hash_contents", "_toml_create"]

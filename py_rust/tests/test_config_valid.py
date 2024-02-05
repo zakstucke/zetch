@@ -13,7 +13,7 @@ from .helpers.types import InputConfig
 
 
 def cfg_str(config: InputConfig) -> str:
-    return zetch._toml_update("", update=config)
+    return zetch._toml_create(config)
 
 
 @pytest.mark.parametrize(

@@ -11,3 +11,6 @@ site
 docs/js_ref/
 docs/rust_ref/
 *.zetch.*
+
+# Specific to zetch, disable for e.g. some test data that needs its formatting:
+py_rust/tests/file/test_data/*

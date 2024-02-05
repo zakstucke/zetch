@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{command, Parser};
 use pyo3::prelude::*;
 
-use crate::prelude::*;
+use crate::{coerce::Coerce, prelude::*};
 
 pub static DEFAULT_CONFIG_PATH: &str = "./zetch.config.toml";
 
@@ -69,10 +69,10 @@ pub enum Command {
     Init(InitCommand),
     /// Replace a template matcher with another, e.g. zetch -> zet
     ReplaceMatcher(ReplaceMatcherCommand),
-    /// Read specific contents from the config file.
-    ReadConfig(ReadConfigCommand),
     /// Read a finalised context variable from the config file.
-    ReadVar(ReadVarCommand),
+    Var(ReadVarCommand),
+    /// Write to various file types from the command line, preserving comments and existing formatting where possible.
+    File(FileCommand),
     /// Display zetch's version
     Version {
         #[arg(long, value_enum, default_value = "text")]
@@ -116,23 +116,6 @@ pub enum ReadOutputFormat {
 }
 
 #[derive(Clone, Debug, clap::Parser)]
-pub struct ReadConfigCommand {
-    /// The target directory to search and render.
-    #[clap(
-        default_value = ".",
-        help = "The '.' separated path to search in the config file. E.g. 'context.env.foo.default' or '.' for the whole config."
-    )]
-    pub path: String,
-    /// The output format to print in.
-    ///
-    /// - raw (default) -> same as json except simple string output is printed without quotes, to allow for easier command chaining.
-    ///
-    /// - json -> json compatible output.
-    #[arg(short, long, default_value = "raw")]
-    pub output: ReadOutputFormat,
-}
-
-#[derive(Clone, Debug, clap::Parser)]
 pub struct ReadVarCommand {
     /// The context variable from the config file to read.
     #[clap()]
@@ -144,6 +127,46 @@ pub struct ReadVarCommand {
     /// - json -> json compatible output.
     #[arg(short, long, default_value = "raw")]
     pub output: ReadOutputFormat,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct FileCommand {
+    /// The file to write to.
+    pub filepath: PathBuf,
+
+    /// The '.' separated path to write to. E.g. 'context.env.foo.default' or '.' for the file root. Any contents at this path will be overwritten.
+    pub path: String,
+
+    /// The value to write to the given path.
+    #[clap(short = 'p', long = "put")]
+    pub put: Option<String>,
+
+    #[clap(short = 'd', long = "delete")]
+    pub delete: bool,
+
+    /// By default all values will be treated as strings, use this flag to coerce the value as a different type. Same usage as coerce in config.
+    #[clap(long = "coerce")]
+    pub coerce: Option<Coerce>,
+
+    /// Read only: the output format to print in.
+    ///
+    /// - raw (default) -> same as json except simple string output is printed without quotes, to allow for easier command chaining.
+    ///
+    /// - json -> json compatible output.
+    #[arg(short, long, default_value = "raw")]
+    pub output: ReadOutputFormat,
+
+    /// The filetype being read, should be specified when the filetype cannot be inferred automatically.
+    #[clap(long = "json", default_value = "false")]
+    pub json: bool,
+
+    /// The filetype being read, should be specified when the filetype cannot be inferred automatically.
+    #[clap(long = "yaml", alias = "yml", default_value = "false")]
+    pub yaml: bool,
+
+    /// The filetype being read, should be specified when the filetype cannot be inferred automatically.
+    #[clap(long = "toml", default_value = "false")]
+    pub toml: bool,
 }
 
 #[derive(Clone, Debug, clap::Parser)]
