@@ -7,19 +7,11 @@ use bitbazaar::{
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use super::{coerce, engine::Engine, src_read::read_and_auto_update};
-use crate::prelude::*;
-
-// String literal of json, str, int, float, bool:
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Coerce {
-    Json,
-    Str,
-    Int,
-    Float,
-    Bool,
-}
+use super::{engine::Engine, src_read::read_and_auto_update};
+use crate::{
+    coerce::{coerce, Coerce},
+    prelude::*,
+};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CtxStaticVar {
@@ -29,7 +21,7 @@ pub struct CtxStaticVar {
 
 impl CtxStaticVar {
     pub fn consume(self) -> Result<serde_json::Value, Zerr> {
-        coerce(self.value, self.coerce)
+        coerce(self.value, &self.coerce)
     }
 }
 
@@ -73,7 +65,7 @@ impl CtxEnvVar {
 
         let value = serde_json::Value::String(value);
 
-        coerce(value, self.coerce)
+        coerce(value, &self.coerce)
     }
 }
 
@@ -131,7 +123,7 @@ impl CtxCliVar {
         }
         let value = serde_json::Value::String(cmd_out.stdout);
 
-        coerce(value, self.coerce)
+        coerce(value, &self.coerce)
     }
 }
 

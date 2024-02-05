@@ -4,6 +4,9 @@ import pathlib
 import subprocess
 import typing as tp
 
+# Set location env var for testing, so location always shows in error messages:
+os.environ["ZETCH_LOCATION"] = "True"
+
 
 class RenderResult(tp.TypedDict):
     debug: dict

@@ -46,7 +46,7 @@ pub fn run() -> Result<(), Zerr> {
         // If its a read command (i.e. the output is important, only show errors, to prevent polluting the output)
         if matches!(
             &args.command,
-            args::Command::ReadConfig(_) | args::Command::ReadVar(_)
+            args::Command::File(_) | args::Command::Var(_)
         ) {
             log_layers.push(SubLayer {
                 variant: SubLayerVariant::Stdout {},

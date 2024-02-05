@@ -1,9 +1,20 @@
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::raw_conf::Coerce;
 use crate::prelude::*;
 
-pub fn coerce(value: Value, c_type: Option<Coerce>) -> Result<Value, Zerr> {
+// String literal of json, str, int, float, bool:
+#[derive(Clone, Debug, Deserialize, Serialize, clap::ValueEnum)]
+#[serde(rename_all = "lowercase")]
+pub enum Coerce {
+    Json,
+    Str,
+    Int,
+    Float,
+    Bool,
+}
+
+pub fn coerce(value: Value, c_type: &Option<Coerce>) -> Result<Value, Zerr> {
     // Always strip whitespace from string inputs:
     let value = match value {
         Value::String(s) => Value::String(s.trim().to_string()),

@@ -20,10 +20,16 @@ pub enum Zerr {
     CustomPyFunctionError,
     /// An error that occurred whilst rendering templates, should be a problem with the user supplied templates, not internal.
     RenderTemplateError,
-    /// When a user provided path in a toml file (i.e. config file) doesn't match the contents.
-    TomlReadPathError,
-    /// When a variable requested using read-var doesn't exist.
+    /// When a variable requested using subcommand "var" doesn't exist.
     ReadVarMissing,
+    /// When the file subcommand is called incorrectly.
+    FileCmdUsageError,
+    /// When a user specified file cannot be found.
+    FileNotFound,
+    /// When a user specified file does not match expected syntax.
+    FileSyntaxError,
+    /// When a user specified path in a file doesn't match the file's structure.
+    FilePathError,
     /// An unexpected internal error with zetch.
     #[strum(
         serialize = "InternalError: this shouldn't occur, open an issue at https://github.com/zakstucke/zetch/issues"
@@ -50,5 +56,32 @@ macro_rules! zerr {
         use $crate::error::Zerr;
 
         Report::new($zerr_varient).attach_printable(format!($str, $($arg),*))
+    }};
+}
+
+/// A macro for building `Report<Zerr>` objects with string context easily.
+///
+/// E.g. `zerr!(Zerr::ReadConfigError, "Failed to read config file: {}", e)`
+#[macro_export]
+macro_rules! zerr_int {
+    () => {{
+        use error_stack::Report;
+        use $crate::error::Zerr;
+
+        Report::new(Zerr::InternalError)
+    }};
+
+    ($str:expr) => {{
+        use error_stack::Report;
+        use $crate::error::Zerr;
+
+        Report::new(Zerr::InternalError).attach_printable($str)
+    }};
+
+    ($str:expr, $($arg:expr),*) => {{
+        use error_stack::Report;
+        use $crate::error::Zerr;
+
+        Report::new(Zerr::InternalError).attach_printable(format!($str, $($arg),*))
     }};
 }

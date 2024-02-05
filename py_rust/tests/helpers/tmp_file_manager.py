@@ -72,7 +72,7 @@ class TmpFileManager:
 
     def create_cfg(self, config: InputConfig) -> pathlib.Path:
         return self.tmpfile(
-            zetch._toml_update("", update=config),
+            zetch._toml_create(config),
             suffix=".toml",
         )
 
