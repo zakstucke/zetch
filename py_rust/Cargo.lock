@@ -155,9 +155,9 @@ checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 
 [[package]]
 name = "bitbazaar"
-version = "0.0.25"
+version = "0.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "871422e5670b0b52c131d58f6b4b64cf88b42cc7207d138de73e2690f48f763e"
+checksum = "e9c98f4019619d6df47cacf08b5502a236a813661eae761c849a76230f1bd268"
 dependencies = [
  "chrono",
  "clap",
@@ -166,6 +166,7 @@ dependencies = [
  "conch-parser",
  "error-stack",
  "homedir",
+ "normpath",
  "once_cell",
  "parking_lot",
  "regex",
@@ -906,6 +907,15 @@ dependencies = [
  "libc",
  "memoffset 0.7.1",
  "pin-utils",
+]
+
+[[package]]
+name = "normpath"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec60c60a693226186f5d6edf073232bfb6464ed97eb22cf3b01c1e8198fd97f5"
+dependencies = [
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
