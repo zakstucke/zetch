@@ -1,17 +1,17 @@
 {
   "version": "0.0.2",
   "files": {
-    "docs/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "docs/CODE_OF_CONDUCT.zetch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
-    "CONTRIBUTING.zetch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
-    ".github/workflows/release.yml.zetch": "113d0ff9c2c6f140385e8d215078d1f0330e2fa2e95006ab32716035c83b098b",
-    "docs/CONTRIBUTING.zetch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
     "CODE_OF_CONDUCT.zetch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
-    "setup.zetch.cfg": "ce2ab0aa51d5265cdde036805b74ba7a9bf2fa16ad38e438bfeed1d9d51efaf7",
-    "py_rust/README.zetch.md": "3433c7e3173890ce85efea4e93bd92c70334be98bacb5999c19140178096b3ad",
-    "py_rust/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "README.zetch.md": "9d85b0018f7ec86a5bf7af90158b7b18d9e7a08e10cd2656fda3e6c3a6012b2b",
+    "CONTRIBUTING.zetch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
+    ".github/workflows/release.yml.zetch": "7b0dbc895633689f01592cc57756550f67a0d76e188fbaad79845fd71a518c94",
+    "setup.zetch.cfg": "7f70b23d28f25ed3c1f2987dacdfdb79251bedf591293e5e948d73b97c0100ee",
     "docs/index.zetch.md": "3433c7e3173890ce85efea4e93bd92c70334be98bacb5999c19140178096b3ad",
-    "LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b"
+    "py_rust/README.zetch.md": "3433c7e3173890ce85efea4e93bd92c70334be98bacb5999c19140178096b3ad",
+    "README.zetch.md": "9d85b0018f7ec86a5bf7af90158b7b18d9e7a08e10cd2656fda3e6c3a6012b2b",
+    "LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
+    "docs/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
+    "docs/CONTRIBUTING.zetch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
+    "docs/CODE_OF_CONDUCT.zetch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
+    "py_rust/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b"
   }
 }
