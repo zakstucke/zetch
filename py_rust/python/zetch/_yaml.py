@@ -1,12 +1,15 @@
-import typing_extensions as tp
+import typing
 
+# Can't use typing_extensions at runtime, would be an extra python dep.
+if typing.TYPE_CHECKING:
+    import typing_extensions as tp
 
-class Update(tp.TypedDict):
-    # The path in the yaml file to update.
-    path: "list[tp.Union[str, int]]"
-    # If key doesn't exist will be treated as delete.
-    # The string will be a json str that needs to be decoded.
-    put: "tp.NotRequired[str]"
+    class Update(tp.TypedDict):
+        # The path in the yaml file to update.
+        path: "list[tp.Union[str, int]]"
+        # If key doesn't exist will be treated as delete.
+        # The string will be a json str that needs to be decoded.
+        put: "tp.NotRequired[str]"
 
 
 def modify_yaml(src: str, updates: "list[Update]") -> memoryview:
