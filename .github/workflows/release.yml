@@ -12,8 +12,8 @@ on:
                 required: false
                 default: false
             py_rust_version:
-                description: "Rust-backed Python Version (now 0.0.6)"
-                default: "0.0.6"
+                description: "Rust-backed Python Version (now 0.0.7)"
+                default: "0.0.7"
 
 jobs:
     commit_versions:
