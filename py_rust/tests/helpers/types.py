@@ -38,12 +38,22 @@ class InputContext(tp.TypedDict):
     env: tp.NotRequired["dict[str, EnvCtx]"]
 
 
+class Task(tp.TypedDict):
+    commands: "list[str]"
+
+
+class Tasks(tp.TypedDict):
+    pre: tp.NotRequired["list[Task]"]
+    post: tp.NotRequired["list[Task]"]
+
+
 class InputConfig(tp.TypedDict):
     ignore_files: tp.NotRequired["list[str]"]
     matchers: tp.NotRequired["list[str]"]
     exclude: tp.NotRequired["list[str]"]
     engine: tp.NotRequired[Engine]
     context: tp.NotRequired[InputContext]
+    tasks: tp.NotRequired["Tasks"]
 
 
 class OutputConfig(InputConfig):

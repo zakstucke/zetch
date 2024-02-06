@@ -38,8 +38,7 @@ def render(
     total_output = f"{p1.stdout}\n{p1.stderr}".strip()
     if p1.returncode != 0:
         raise ValueError(total_output)
-    else:
-        print(total_output)
+    print(total_output)
 
     with open(os.path.join(root, "zetch_debug.json"), "r") as file:
         result = tp.cast(dict, json.load(file))

@@ -2,18 +2,15 @@ use std::collections::HashSet;
 
 use crate::{
     args::{ReadOutputFormat, ReadVarCommand},
-    config::final_config_path,
     prelude::*,
 };
 
 /// Read a finalised config variable.
 pub fn read_var(args: &crate::args::Args, read: &ReadVarCommand) -> Result<(), Zerr> {
-    let raw_conf = crate::config::RawConfig::from_toml(&final_config_path(&args.config, None)?)?;
-
-    let all_context_keys = raw_conf.all_context_keys();
-
-    let conf = crate::config::process(
-        raw_conf,
+    // Note conf.context will only contain variable requested, rest won't be processed,
+    // use conf.raw to see what's actually in the config file.
+    let conf = crate::config::load(
+        args,
         None,
         // Don't need to compute all of them, just the one being printed:
         Some(HashSet::from_iter([read.var.as_str()])),
@@ -41,7 +38,7 @@ pub fn read_var(args: &crate::args::Args, read: &ReadVarCommand) -> Result<(), Z
             Zerr::ReadVarMissing,
             "Context variable '{}' not found in finalised config. All context keys: '{}'.",
             read.var,
-            all_context_keys.join(", ")
+            conf.raw.all_context_keys().join(", ")
         ))
     }
 }

@@ -30,6 +30,10 @@ pub enum Zerr {
     FileSyntaxError,
     /// When a user specified path in a file doesn't match the file's structure.
     FilePathError,
+    /// When a user puts a value that cannot be used in the current context.
+    InvalidPutValue,
+    /// When a user task calls zetch commands that call tasks, recursion problem.
+    TaskRecursionError,
     /// An unexpected internal error with zetch.
     #[strum(
         serialize = "InternalError: this shouldn't occur, open an issue at https://github.com/zakstucke/zetch/issues"

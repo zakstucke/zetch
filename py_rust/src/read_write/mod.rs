@@ -6,7 +6,7 @@ mod read;
 mod traverser;
 
 use self::{delete::handle_delete, filetype::get_filetype, put::handle_put, read::handle_read};
-use crate::{args::FileCommand, coerce::coerce, prelude::*};
+use crate::{args::FileCommand, prelude::*};
 
 pub fn handle_file_cmd(args: &crate::args::Args, fargs: &FileCommand) -> Result<(), Zerr> {
     let cmd_type = if fargs.put.is_some() && fargs.delete {
@@ -26,8 +26,6 @@ pub fn handle_file_cmd(args: &crate::args::Args, fargs: &FileCommand) -> Result<
     let file_contents =
         std::fs::read_to_string(&fargs.filepath).change_context(Zerr::FileNotFound)?;
 
-    let manager = langs::Manager::new(get_filetype(args, fargs, &file_contents)?, &file_contents)?;
-
     // Convert the . separated path into a Vec<&str>:
     let path = fargs.path.split('.').collect::<Vec<&str>>();
 
@@ -36,16 +34,11 @@ pub fn handle_file_cmd(args: &crate::args::Args, fargs: &FileCommand) -> Result<
         return Err(zerr!(Zerr::FilePathError, "Path cannot be empty."));
     }
 
+    let ft = get_filetype(args, fargs, &file_contents)?;
     match cmd_type {
-        CommandType::Delete => handle_delete(args, fargs, &path, manager)?,
-        CommandType::Put(to_write) => {
-            // Coerce the type then convert into a json string, complex borrowing & cross compatibility semantics require this:
-            let to_put_str =
-                serde_json::to_string(&coerce(serde_json::Value::String(to_write), &fargs.coerce)?)
-                    .change_context(Zerr::InternalError)?;
-            handle_put(args, fargs, &path, &to_put_str, manager)?
-        }
-        CommandType::Read => handle_read(args, fargs, &path, manager)?,
+        CommandType::Delete => handle_delete(fargs, &path, ft, file_contents)?,
+        CommandType::Put(to_write) => handle_put(fargs, &path, to_write, ft, file_contents)?,
+        CommandType::Read => handle_read(fargs, &path, ft, file_contents)?,
     }
 
     Ok(())

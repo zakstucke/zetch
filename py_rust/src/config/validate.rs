@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use super::RawConfig;
+use super::raw_conf::RawConfig;
 use crate::prelude::*;
 
 // Include the schema in the binary to use at runtime:
@@ -12,16 +12,21 @@ static JSON_SCHEMA: &str = include_str!(r"./schema.json");
 pub fn pre_validate(value: &serde_json::Value) -> Result<(), Zerr> {
     let state = run_against_schema(value)?;
     if !state.is_strictly_valid() {
-        return Err(zerr!(
-            Zerr::ConfigInvalid,
-            "{}",
-            state
-                .errors
-                .into_iter()
-                .map(format_err)
-                .collect::<Vec<String>>()
-                .join("\n")
-        ));
+        let mut report = zerr!(Zerr::ConfigInvalid, "Config validation failed.");
+        for err in state.errors {
+            report = report.attach_printable(format_err(err));
+        }
+
+        if !state.missing.is_empty() {
+            for missing in state.missing {
+                report = report.attach_printable(format!("Missing: {}", missing));
+            }
+            report = report.change_context(Zerr::InternalError).attach_printable(
+                "Missing errors most likely an issue with the internal json schema for the config. First arose when task shared $def was improperly configured in json schema.",
+            );
+        }
+
+        return Err(report);
     }
 
     Ok(())

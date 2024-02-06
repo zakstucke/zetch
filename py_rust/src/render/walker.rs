@@ -5,12 +5,9 @@ use regex::Regex;
 use tracing::debug;
 
 use super::lockfile::LOCKFILE_NAME;
-use crate::{
-    config::{final_config_path, Config},
-    prelude::*,
-};
+use crate::{config::Config, prelude::*};
 
-pub fn create(args: &crate::args::Args, root: &Path, conf: &Config) -> Result<WalkBuilder, Zerr> {
+pub fn create(root: &Path, conf: &Config) -> Result<WalkBuilder, Zerr> {
     let mut builder = WalkBuilder::new(root);
     builder.git_exclude(false); // Don't auto read .git/info/exclude
     builder.git_global(false); // Don't auto use a global .gitignore file
@@ -29,9 +26,7 @@ pub fn create(args: &crate::args::Args, root: &Path, conf: &Config) -> Result<Wa
     ];
 
     // If the config is inside the root, add it to the excludes:
-    if let Some(rel_config) =
-        config_path_relative_to_root(root, &final_config_path(&args.config, Some(root))?)?
-    {
+    if let Some(rel_config) = config_path_relative_to_root(root, &conf.final_config_path)? {
         all_excludes.push(rel_config.display().to_string());
     }
 
@@ -202,13 +197,12 @@ fn rewrite_template_matcher(
 /// Returns a mapping of current template paths to new template paths with an old and new match string.
 /// Used by the replace-matcher command, otherwise used internally in render().
 pub fn get_template_matcher_rewrite_mapping(
-    args: &crate::args::Args,
     root: &Path,
     conf: &Config,
     old_matcher: &str,
     new_matcher: &str,
 ) -> Result<Vec<(PathBuf, PathBuf)>, Zerr> {
-    let templates = find_templates(root, create(args, root, conf)?, &[old_matcher.to_string()])?;
+    let templates = find_templates(root, create(root, conf)?, &[old_matcher.to_string()])?;
 
     let middle_regex = get_middle_regex(old_matcher);
     let end_regex = get_end_regex(old_matcher);

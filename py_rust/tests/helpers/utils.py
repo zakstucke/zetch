@@ -98,3 +98,25 @@ def no_file_err_cross(filename: str) -> str:
         return "The system cannot find the file specified."
     else:
         return "{}: No such file or directory".format(filename)
+
+
+def file_mod_time(filepath: str) -> tp.Optional[int]:
+    """Return the last modified time of a file.
+
+    If windows returns None as not supported, so should disable the test in usage.
+    """
+    if os.name == "nt":
+        return None
+    return os.stat(filepath).st_ctime_ns
+
+
+def assert_file_modified_since(filepath: str, last: tp.Optional[int]):
+    if last is not None:
+        now = file_mod_time(filepath)
+        assert now is not None and now > last, (now, last)
+
+
+def assert_file_not_modified(filepath: str, last: tp.Optional[int]):
+    if last is not None:
+        now = file_mod_time(filepath)
+        assert now is not None and now == last, (now, last)

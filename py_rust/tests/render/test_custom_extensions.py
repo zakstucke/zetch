@@ -429,8 +429,9 @@ def test_custom_ext_nice_user_invalid_errs(
 # DONE allow replacing the matcher
 # DONE full read and write control for arbitrary toml, yml, json files, which do not modify existing formatting.
 # DONE ruff and pyright checking in tests, connected to requires_python correctly
-# TODO probably remove most engine config, we don't want to mess with files and error early (so enforce no_undefined and keep_trailing_newline)
-# TODO pre and post commands, post have access to context via env vars.
+# DONE pre and post commands, post have access to context via env vars.
+# TODO make the py yaml lib an optional pkg feature and raise if put/delete yaml without it
+# TODO probably remove most engine config and rename the config key to render to match the subcommand, we don't want to mess with files and error early (so enforce no_undefined and keep_trailing_newline)
 # TODO some sort of heavy/light/modes solution to caching values and not recomputing, maybe also for ban-defaults etc. maybe a modes top level config section, where a mode can override any config, set ban-defaults etc, need to think, but also need a way to only run certain post and pre in certain modes, need to think on best api.
 # TODO fix schema - not sure why its not working
 # TODO think about interop with jinja,cookiecutter,copier,etc

@@ -1,15 +1,17 @@
-use super::{raise_invalid_path, traverser::TravNode};
+use super::{filetype::FileType, langs, raise_invalid_path, traverser::TravNode};
 use crate::{args::FileCommand, prelude::*};
 
 /// Handle deletions.
 ///
 /// Note the file should already be checked to be valid for the given type and so the initial load should raise InternalError if it fails (aka it shouldn't fail.)
-pub fn handle_delete<'r>(
-    _args: &crate::args::Args,
+pub fn handle_delete(
     fargs: &FileCommand,
-    path: &[&'r str],
-    mut manager: super::langs::Manager<'r>,
+    path: &[&str],
+    ft: FileType,
+    file_contents: String,
 ) -> Result<(), Zerr> {
+    let mut manager = langs::Manager::new(ft, &file_contents)?;
+
     // To reaccess root to compile, need to drop traverser, hence block:
     {
         let trav = manager.traverser()?;
@@ -20,7 +22,7 @@ pub fn handle_delete<'r>(
             match trav.active()? {
                 TravNode::Array => {
                     let index = trav.key_as_index(key)?;
-                    // Silently exit if out of bounds on delete:
+                    // Silently exit if out of bounds on delete (don't want to modify file or error):
                     if index >= trav.array_len()? {
                         return Ok(());
                     }
@@ -31,7 +33,7 @@ pub fn handle_delete<'r>(
                     }
                 }
                 TravNode::Object => {
-                    // Silently exit if already missing on delete:
+                    // Silently exit if already missing on delete (don't want to modify file or error):
                     if !trav.object_key_exists(key)? {
                         return Ok(());
                     }

@@ -25,9 +25,9 @@ mod var;
 use prelude::*;
 
 #[pyfunction]
-pub fn cli() {
+pub fn cli() -> i32 {
     match run::run() {
-        Ok(_) => std::process::exit(0),
+        Ok(_) => 0,
         Err(e) => {
             // if ZETCH_LOCATION env var is set, always show location:
             if std::env::var("ZETCH_LOCATION").is_err() {
@@ -45,9 +45,7 @@ pub fn cli() {
                 eprintln!("{}", "zetch failed".red().bold());
                 eprintln!("{:?}", e);
             }
-            // Wait 5ms to make sure logs have all flushed, std::process::exit() will cause logs to be dropped if they haven't finished flushing.
-            std::thread::sleep(std::time::Duration::from_millis(5));
-            std::process::exit(1);
+            1
         }
     }
 }

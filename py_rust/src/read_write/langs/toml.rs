@@ -460,7 +460,7 @@ fn serde_to_table(val: serde_json::Value) -> Result<Table, Zerr> {
             table
         }
         _ => Err(zerr!(
-            Zerr::FileSyntaxError,
+            Zerr::InvalidPutValue,
             "Value is not an object, can't convert to table where a table is required."
         ))?,
     })
@@ -495,7 +495,7 @@ pub fn serde_to_value(val: serde_json::Value) -> Result<Value, Zerr> {
     Ok(match val {
         // User error as null can't be represented in toml:
         serde_json::Value::Null => Err(zerr!(
-            Zerr::FileSyntaxError,
+            Zerr::InvalidPutValue,
             "Null value not supported by toml format."
         ))?,
         serde_json::Value::Bool(b) => Value::Boolean(Formatted::new(b)),

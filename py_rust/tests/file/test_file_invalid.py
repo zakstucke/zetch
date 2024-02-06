@@ -40,6 +40,13 @@ Meaning we can run all these checks on one lang variant. (apart from any special
         ),
         # Delete:
         # No missing or oob checks for delete, both will be treated as no-op.
+        # Special case for toml, trying to put a none object to an array of tables:
+        (
+            "put_toml_table_array_invalid_value",
+            ["foo.toml", "ree.0", "--put=foo"],
+            lambda man: man.tmpfile("[[ree]]\nfoo = 1\n\n[[ree]]\nfoo = 2", full_name="foo.toml"),
+            "InvalidPutValue",
+        ),
     ],
 )
 def test_file_cmd_invalid(
