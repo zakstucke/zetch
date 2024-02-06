@@ -11,11 +11,11 @@ regex = '1.10.2'
 serde_json = '1.0.108'
 serde_yaml = '0.9.31'
 sha2 = '0.10.8'
+tempfile = '3.9.0'
 toml = '0.8.8'
 toml_edit = '0.21.0'
 tracing = '0.1'
 valico = '4.0.0'
-tempfile = '3.9.0'
 
 [dependencies.bitbazaar]
 features = ['cli']
