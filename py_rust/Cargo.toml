@@ -64,7 +64,7 @@ license = 'MIT'
 name = 'zetch'
 publish = false
 readme = 'README.md'
-version = '0.0.8'
+version = '0.0.9'
 
 [profile]
 
