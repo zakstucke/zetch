@@ -1,13 +1,13 @@
 use std::{collections::HashMap, path::Path};
 
 use bitbazaar::{
-    cli::{execute_bash, CmdErr, CmdOut},
+    cli::{Bash, BashErr, CmdOut},
     timeit,
 };
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use super::{engine::Engine, src_read::read_and_auto_update};
+use super::{engine::Engine, src_read::read_and_auto_update, tasks::Tasks};
 use crate::{
     coerce::{coerce, Coerce},
     prelude::*,
@@ -77,18 +77,18 @@ pub struct CtxCliVar {
 }
 
 impl CtxCliVar {
-    pub fn consume(self) -> Result<serde_json::Value, Zerr> {
+    pub fn consume(self, config_dir: &Path) -> Result<serde_json::Value, Zerr> {
         let commands = self.commands;
 
         let runner = |command: &str| -> Result<CmdOut, Zerr> {
             debug!("Running command: {}", command);
 
             let cmd_out = match timeit!(format!("Cmd: {}", command).as_str(), {
-                execute_bash(command)
+                Bash::new().chdir(config_dir).cmd(command).run()
             }) {
                 Ok(cmd_out) => Ok(cmd_out),
                 Err(e) => match e.current_context() {
-                    CmdErr::InternalError => Err(e.change_context(Zerr::InternalError)),
+                    BashErr::InternalError => Err(e.change_context(Zerr::InternalError)),
                     _ => Err(e.change_context(Zerr::UserCommandError)),
                 },
             }?;
@@ -163,6 +163,8 @@ pub struct RawConfig {
     pub ignore_files: Vec<String>,
     #[serde(default = "default_matchers")]
     pub matchers: Vec<String>,
+    #[serde(default = "Tasks::default")]
+    pub tasks: Tasks,
 }
 
 fn default_matchers() -> Vec<String> {

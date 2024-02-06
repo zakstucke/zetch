@@ -1,18 +1,15 @@
 use std::path::PathBuf;
 
-use crate::{args::ReplaceMatcherCommand, config::final_config_path, prelude::*};
+use crate::{args::ReplaceMatcherCommand, prelude::*};
 
 /// Search the current directory for all template files (using the old matcher), replace the filename with the new matcher.
 ///
 /// Will show all files that will be renamed and prompt for confirmation before renaming.
 pub fn replace(args: &crate::args::Args, replace_args: &ReplaceMatcherCommand) -> Result<(), Zerr> {
     let root = PathBuf::from(".");
-    let raw_conf =
-        crate::config::RawConfig::from_toml(&final_config_path(&args.config, Some(&root))?)?;
-    let conf = crate::config::process(raw_conf, None, None, false)?;
+    let conf = crate::config::load(args, None, None, false)?;
 
     let mapping = crate::render::get_template_matcher_rewrite_mapping(
-        args,
         &root,
         &conf,
         &replace_args.old_matcher,

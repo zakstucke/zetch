@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from ..helpers import cli
+from ..helpers import cli, utils
 from ..helpers.tmp_file_manager import TmpFileManager
 
 
@@ -77,17 +77,13 @@ def test_schema_directive():
                 contents = f.read()
             assert contents.strip() == correct_contents.strip()
 
-        def get_change_time() -> int:
-            return os.stat(config_path).st_ctime_ns
-
         first_directive = get_directive()
-        change_time = get_change_time()
+        change_time = utils.file_mod_time(config_path)
 
         # Should run successfully, not update the config file as directive hasn't changed:
         cli.render(manager.root_dir)
         assert get_directive() == first_directive
-        if os.name != "nt":  # Windows change uses dummy values dont test
-            assert get_change_time() == change_time
+        utils.assert_file_not_modified(config_path, change_time)
         assert_unchanged_config()
 
         # Should auto replace invalid:
@@ -99,13 +95,11 @@ def test_schema_directive():
         assert get_directive() == "foobar"
         cli.render(manager.root_dir)
         assert get_directive() == first_directive
-        new_change_time = get_change_time()
-        if os.name != "nt":  # Windows change uses dummy values dont test
-            assert new_change_time > change_time
+        new_change_time = utils.file_mod_time(config_path)
+        utils.assert_file_modified_since(config_path, change_time)
         assert_unchanged_config()
 
         # Shouldn't touch again:
         cli.render(manager.root_dir)
-        if os.name != "nt":  # Windows change uses dummy values dont test
-            assert get_change_time() == new_change_time
+        utils.assert_file_not_modified(config_path, new_change_time)
         assert_unchanged_config()

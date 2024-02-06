@@ -15,10 +15,11 @@ toml = '0.8.8'
 toml_edit = '0.21.0'
 tracing = '0.1'
 valico = '4.0.0'
+tempfile = '3.9.0'
 
 [dependencies.bitbazaar]
 features = ['cli']
-version = '0.0.24'
+version = '0.0.25'
 
 [dependencies.clap]
 features = ['derive', 'string']

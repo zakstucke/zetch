@@ -222,6 +222,47 @@ def test_incorrect_config():
                 ),
             )
 
+        # Tasks contains a key other than "pre" or "post":
+        with pytest.raises(
+            ValueError,
+            match=re.escape("[tasks]: Unknown property: 'foo'"),
+        ):
+            cli.render(
+                manager.root_dir,
+                manager.tmpfile(
+                    "tasks = { foo = 'bar' }\n",
+                    suffix=".toml",
+                ),
+            )
+
+        # tasks' "pre" or "post" isn't an array:
+        for task in ["pre", "post"]:
+            with pytest.raises(
+                ValueError,
+                match=re.escape(f"[tasks.{task}]: Expected an array."),
+            ):
+                cli.render(
+                    manager.root_dir,
+                    manager.tmpfile(
+                        f"tasks = {{ {task} = 'bar' }}\n",
+                        suffix=".toml",
+                    ),
+                )
+
+        # tasks' "pre" or "post" "commands" subkey is an empty array:
+        for task in ["pre", "post"]:
+            with pytest.raises(
+                ValueError,
+                match=re.escape(f"[tasks.{task}.0.commands]: MinItems condition is not met."),
+            ):
+                cli.render(
+                    manager.root_dir,
+                    manager.tmpfile(
+                        f"tasks = {{ {task} = [{{ commands = [] }}] }}\n",
+                        suffix=".toml",
+                    ),
+                )
+
 
 def test_missing_env_var():
     """Confirm missing env vars included in context raise nice error when no default."""

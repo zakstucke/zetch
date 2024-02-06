@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from ..helpers import cli
+from ..helpers import cli, utils
 from ..helpers.tmp_file_manager import TmpFileManager
 from .test_data.utils import tfile
 
@@ -135,6 +135,36 @@ from .test_data.utils import tfile
                 ("toml", "ree = {}", 'ree = { roo = { baz = { bar = "NEW" } } }\n'),
             ]
         ],
+        # Untouched on identical object key put:
+        *[
+            (f"9_{ft}", '{"foo": [1, 2, 3]}', ["ree", "--coerce=json"], f"foo.{ft}", cont, out)
+            for ft, cont, out in [
+                ("json", '{"ree": {"foo": [1, 2, 3]}}', '{"ree": {"foo": [1, 2, 3]}}'),
+                ("yaml", "ree:\n  foo:\n  - 1\n  - 2\n  - 3", "ree:\n  foo:\n  - 1\n  - 2\n  - 3"),
+                ("toml", "ree = {foo = [1, 2, 3]}", "ree = {foo = [1, 2, 3]}"),
+            ]
+        ],
+        # Untouched on identical array index put:
+        *[
+            (f"10_{ft}", '{"foo": [1, 2, 3]}', ["ree.0", "--coerce=json"], f"foo.{ft}", cont, out)
+            for ft, cont, out in [
+                (
+                    "json",
+                    '{"ree": [{"foo": [1, 2, 3]}, "other"]}',
+                    '{"ree": [{"foo": [1, 2, 3]}, "other"]}',
+                ),
+                (
+                    "yaml",
+                    "ree:\n- foo:\n  - 1\n  - 2\n  - 3\n- other",
+                    "ree:\n- foo:\n  - 1\n  - 2\n  - 3\n- other",
+                ),
+                (
+                    "toml",
+                    'ree = [{foo = [1, 2, 3]}, "other"]',
+                    'ree = [{foo = [1, 2, 3]}, "other"]',
+                ),
+            ]
+        ],
     ],
 )
 def test_file_cmd_put(
@@ -147,6 +177,7 @@ def test_file_cmd_put(
 ):
     with TmpFileManager() as manager:
         filepath = manager.tmpfile(file_contents, full_name=filename)
+        last_change_time = utils.file_mod_time(str(filepath))
 
         result = cli.run(["zetch", "file", str(filepath), *args, "--put", put_val])
 
@@ -162,3 +193,7 @@ def test_file_cmd_put(
                     result,
                 )
             )
+
+        # If file shouldn't change, make sure the file wasn't touched at an OS level:
+        if file_contents == file_contents_out_expected:
+            utils.assert_file_not_modified(str(filepath), last_change_time)

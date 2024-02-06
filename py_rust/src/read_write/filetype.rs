@@ -3,7 +3,7 @@ use strum::IntoEnumIterator;
 use crate::{args::FileCommand, prelude::*};
 
 /// Supported filetypes to process.
-#[derive(Debug, strum::EnumIter)]
+#[derive(Debug, strum::EnumIter, Copy, Clone)]
 pub enum FileType {
     Json,
     Yaml,

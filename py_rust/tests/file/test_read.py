@@ -1,6 +1,6 @@
 import pytest
 
-from ..helpers import cli
+from ..helpers import cli, utils
 from ..helpers.tmp_file_manager import TmpFileManager
 from .test_data.utils import tfile
 
@@ -124,6 +124,7 @@ def test_file_cmd_read(
 ):
     with TmpFileManager() as manager:
         filepath = manager.tmpfile(file_contents, full_name=filename)
+        last_change_time = utils.file_mod_time(str(filepath))
 
         result = cli.run(["zetch", "file", str(filepath), *args])
 
@@ -131,3 +132,4 @@ def test_file_cmd_read(
 
         # Confirm contents hasn't changed:
         assert filepath.read_text() == file_contents
+        utils.assert_file_not_modified(str(filepath), last_change_time)

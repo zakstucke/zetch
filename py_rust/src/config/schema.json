@@ -26,7 +26,7 @@
         },
         "engine": {
             "type": "object",
-            "description": "The templating engine configuration.",
+            "description": "The rendering engine's configuration.",
             "properties": {
                 "block_start": {
                     "type": "string",
@@ -74,6 +74,23 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            },
+            "additionalProperties": false
+        },
+        "tasks": {
+            "type": "object",
+            "description": "Tasks that should be run before (pre) or after (post) loading context and rendering templates.",
+            "properties": {
+                "pre": {
+                    "type": "array",
+                    "description": "Tasks that should be run before building the final context variables. Will be run on any command requiring the context.",
+                    "items": { "$ref": "#/$defs/task" }
+                },
+                "post": {
+                    "type": "array",
+                    "description": "Tasks that should be run after loading context and rendering templates. Useful for updating files that don't use the templating system. E.g. a json file that is also modified by other programs. Will be run only on the zetch render command.",
+                    "items": { "$ref": "#/$defs/task" }
                 }
             },
             "additionalProperties": false
@@ -135,7 +152,7 @@
                             "properties": {
                                 "commands": {
                                     "type": "array",
-                                    "description": "The commands to prepare the variable. The output of the last command will be used as the value of the variable.",
+                                    "description": "The cli commands to prepare the variable. The output of the last command will be used as the value of the variable.",
                                     "items": {
                                         "type": "string"
                                     },
@@ -160,5 +177,22 @@
             "additionalProperties": false
         }
     },
-    "additionalProperties": false
+    "additionalProperties": false,
+    "$defs": {
+        "task": {
+            "type": "object",
+            "description": "A task to run.",
+            "properties": {
+                "commands": {
+                    "type": "array",
+                    "description": "The cli commands to run. Commands are run from the config file's directory.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1
+                }
+            },
+            "additionalProperties": false
+        }
+    }
 }

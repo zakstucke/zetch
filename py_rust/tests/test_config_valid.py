@@ -151,6 +151,54 @@ def cfg_str(config: InputConfig) -> str:
             cfg_str({"matchers": ["foo", "foo-bar_ree", "d77"]}),
             ["foo", "foo-bar_ree", "d77"],
         ),
+        # Tasks:
+        (
+            {},
+            "tasks",
+            cfg_str({}),
+            {
+                "pre": [],
+                "post": [],
+            },
+        ),
+        (
+            {},
+            "tasks",
+            cfg_str(
+                {
+                    "tasks": {
+                        "post": [],
+                    }
+                }
+            ),
+            {
+                "pre": [],
+                "post": [],
+            },
+        ),
+        (
+            {},
+            "tasks",
+            cfg_str(
+                {
+                    "tasks": {
+                        "pre": [
+                            {
+                                "commands": ["echo 'Building...'"],
+                            }
+                        ]
+                    }
+                }
+            ),
+            {
+                "pre": [
+                    {
+                        "commands": ["echo 'Building...'"],
+                    }
+                ],
+                "post": [],
+            },
+        ),
     ],
 )
 def test_read_config(

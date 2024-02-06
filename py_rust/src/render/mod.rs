@@ -16,33 +16,39 @@ pub use walker::get_template_matcher_rewrite_mapping;
 
 use crate::{
     args::RenderCommand,
-    config::{self, final_config_path, Config},
+    config::{self, Config},
     prelude::*,
 };
 
 pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<bool, Zerr> {
     args_validate::args_validate(render_args)?;
 
-    let raw_conf = timeit!("Config processing", {
-        config::RawConfig::from_toml(&final_config_path(&args.config, Some(&render_args.root))?)
-    })?;
-
     let mut lockfile = timeit!("Lockfile preparation", {
         self::lockfile::Lockfile::load(render_args.root.clone(), render_args.force)
     });
 
-    let (conf, written, identical) = if lockfile.newly_created
-        && raw_conf.context.cli.values().any(|v| v.initial.is_some())
-    {
+    let mut conf = config::load(
+        args,
+        Some(render_args),
+        None,
+        // If newly created, should use cli initials if specified:
+        lockfile.newly_created,
+    )?;
+
+    // Need to run twice and rebuild config with real cli vars if initials used in the first conf build:
+    let (written, identical) = if conf.cli_initials_used {
         warn!("Lockfile newly created/force updated and some cli vars have initials, will double render and use initials first time round.");
         // Conf from second as that has the real cli vars, template info from the first as the second will be inaccurate due to the first having run.
-        let (_, first_written, first_identical) =
-            render_inner(args, render_args, raw_conf.clone(), &mut lockfile, true)?;
-        let (conf, _, _) = render_inner(args, render_args, raw_conf, &mut lockfile, false)?;
-        (conf, first_written, first_identical)
+        let (first_written, first_identical) = render_inner(&conf, render_args, &mut lockfile)?;
+        conf = config::load(args, Some(render_args), None, false)?;
+        render_inner(&conf, render_args, &mut lockfile)?;
+        (first_written, first_identical)
     } else {
-        render_inner(args, render_args, raw_conf, &mut lockfile, false)?
+        render_inner(&conf, render_args, &mut lockfile)?
     };
+
+    // Run post-tasks:
+    conf.tasks.run_post(&conf)?;
 
     timeit!("Syncing lockfile", { lockfile.sync() })?;
 
@@ -97,25 +103,18 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
 }
 
 fn render_inner(
-    args: &crate::args::Args,
+    conf: &Config,
     render_args: &RenderCommand,
-    raw_conf: config::RawConfig,
     lockfile: &mut self::lockfile::Lockfile,
-    use_cli_initials: bool,
 ) -> Result<
     (
-        Config,
         Vec<crate::render::template::Template>,
         Vec<crate::render::template::Template>,
     ),
     Zerr,
 > {
-    let conf = timeit!("Context value extraction (including scripting)", {
-        config::process(raw_conf, Some(render_args), None, use_cli_initials)
-    })?;
-
     let walker = timeit!("Filesystem walker creation", {
-        self::walker::create(args, &render_args.root, &conf)
+        self::walker::create(&render_args.root, conf)
     })?;
 
     let templates = timeit!("Traversing filesystem & identifying templates", {
@@ -128,7 +127,7 @@ fn render_inner(
     // Create the minijinja environment with the context.
     // A loader is set that can automatically load templates, this means it can load the main templates, and any other "includes" in user templates too.
     let env = timeit!("Creating rendering environment", {
-        conf.engine.create_minijinja_env(&render_args.root, &conf)
+        conf.engine.create_minijinja_env(&render_args.root, conf)
     })?;
 
     timeit!("Rendering templates & syncing files", {
@@ -162,5 +161,5 @@ fn render_inner(
         Ok::<_, error_stack::Report<Zerr>>(())
     })?;
 
-    Ok((conf, written, identical))
+    Ok((written, identical))
 }

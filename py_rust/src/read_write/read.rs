@@ -1,4 +1,4 @@
-use super::{raise_invalid_path, traverser::TravNode};
+use super::{filetype::FileType, langs, raise_invalid_path, traverser::TravNode};
 use crate::{
     args::{FileCommand, ReadOutputFormat},
     prelude::*,
@@ -7,12 +7,14 @@ use crate::{
 /// Handle reads prints the result to stdout in the user specified format.
 ///
 /// Note the file should already be checked to be valid for the given type and so the initial load should raise InternalError if it fails (aka it shouldn't fail.)
-pub fn handle_read<'r>(
-    _args: &crate::args::Args,
+pub fn handle_read(
     fargs: &FileCommand,
-    path: &[&'r str],
-    mut manager: super::langs::Manager<'r>,
+    path: &[&str],
+    ft: FileType,
+    file_contents: String,
 ) -> Result<(), Zerr> {
+    let mut manager = langs::Manager::new(ft, &file_contents)?;
+
     let trav = manager.traverser()?;
 
     for key in path.iter() {

@@ -1,6 +1,6 @@
 import pytest
 
-from ..helpers import cli
+from ..helpers import cli, utils
 from ..helpers.tmp_file_manager import TmpFileManager
 from .test_data.utils import tfile
 
@@ -102,23 +102,15 @@ from .test_data.utils import tfile
                 ),
             ]
         ],
-        # No error or file change when target key doesn't exist:
+        # No error or file change when intermediary or target key doesn't exist:
         *[
-            (f"8_{ft}", ["ree.roo"], f"foo.{ft}", cont, out)
+            (f"8_{typ}_{ft}", [path], f"foo.{ft}", cont, out)
             for ft, cont, out in [
                 ("json", '{"ree": {"bar": "baz"}}', '{"ree": {"bar": "baz"}}'),
                 ("yaml", "ree:\n  bar: baz", "ree:\n  bar: baz"),
                 ("toml", 'ree = {bar = "baz"}', 'ree = {bar = "baz"}'),
             ]
-        ],
-        # No error or file change when intermediary key doesn't exist:
-        *[
-            (f"9_{ft}", ["ree.roo.bar"], f"foo.{ft}", cont, out)
-            for ft, cont, out in [
-                ("json", '{"ree": {"bar": "baz"}}', '{"ree": {"bar": "baz"}}'),
-                ("yaml", "ree:\n  bar: baz", "ree:\n  bar: baz"),
-                ("toml", 'ree = {bar = "baz"}', 'ree = {bar = "baz"}'),
-            ]
+            for typ, path in [["intermediary", "ree.roo.bar"], ["end", "ree.roo"]]
         ],
     ],
 )
@@ -131,6 +123,7 @@ def test_file_cmd_delete(
 ):
     with TmpFileManager() as manager:
         filepath = manager.tmpfile(file_contents, full_name=filename)
+        last_change_time = utils.file_mod_time(str(filepath))
 
         result = cli.run(["zetch", "file", str(filepath), *args, "--delete"])
 
@@ -146,3 +139,7 @@ def test_file_cmd_delete(
                     result,
                 )
             )
+
+        # If file shouldn't change, make sure the file wasn't touched at an OS level:
+        if file_contents == file_contents_out_expected:
+            utils.assert_file_not_modified(str(filepath), last_change_time)
