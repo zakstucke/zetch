@@ -11,6 +11,8 @@ from .helpers.types import InputConfig, Task
 
 def create_file_cmd(filepath: str, content: str) -> str:
     """Create a command that creates the file with given contents if missing, if already exists exits with code 1."""
+    content = content.replace('"', '\\"')
+
     # If windows:
     if os.name == "nt":
         return (
@@ -39,16 +41,17 @@ def check_file(filepath: str, content: str):
             )
             for typ in ["pre", "post"]
         ],
-        # Zetch file command should work in both:
+        # Zetch read, put, del commands should work in both:
         *[
             (
-                f"file_cmd_{typ}",
+                f"read_put_del_cmd_{typ}",
                 typ,
                 [
                     {
                         "commands": [
-                            create_file_cmd("file.json", "{}"),
-                            "zetch file file.json value --put=bar",
+                            create_file_cmd("file.json", '{"ree": "bar"}'),
+                            "zetch put file.json value $(zetch read file.json ree)",
+                            "zetch del file.json ree",
                         ]
                     }
                 ],
@@ -67,7 +70,7 @@ def check_file(filepath: str, content: str):
                 {
                     "commands": [
                         create_file_cmd("file.json", "{}"),
-                        "zetch file file.json value --put=$(zetch var FOO)",
+                        "zetch put file.json value $(zetch var FOO)",
                     ]
                 }
             ],

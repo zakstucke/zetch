@@ -1,6 +1,6 @@
 use super::{filetype::FileType, langs, raise_invalid_path, traverser::TravNode};
 use crate::{
-    args::{FileCommand, ReadOutputFormat},
+    args::{ReadCommand, ReadOutputFormat},
     prelude::*,
 };
 
@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Note the file should already be checked to be valid for the given type and so the initial load should raise InternalError if it fails (aka it shouldn't fail.)
 pub fn handle_read(
-    fargs: &FileCommand,
+    fargs: &ReadCommand,
     path: &[&str],
     ft: FileType,
     file_contents: String,

@@ -1,6 +1,7 @@
 use strum::IntoEnumIterator;
 
-use crate::{args::FileCommand, prelude::*};
+use super::source::Source;
+use crate::{args::FileSharedArgs, prelude::*};
 
 /// Supported filetypes to process.
 #[derive(Debug, strum::EnumIter, Copy, Clone)]
@@ -9,6 +10,8 @@ pub enum FileType {
     Yaml,
     Toml,
 }
+
+pub static VALID_FILE_EXTS_AND_OPTS: &[&str] = &["json", "yaml", "yml", "toml"];
 
 impl FileType {
     fn validate_file(&self, contents: &str) -> Result<(), Zerr> {
@@ -35,13 +38,26 @@ impl FileType {
     }
 }
 
+pub fn valid_ft_opts_str() -> String {
+    let mut s = "".to_string();
+    for (index, ft) in VALID_FILE_EXTS_AND_OPTS.iter().enumerate() {
+        if index == VALID_FILE_EXTS_AND_OPTS.len() - 1 {
+            s.push_str(&format!("or '--{}'", ft));
+        } else {
+            s.push_str(&format!("'--{}', ", ft));
+        }
+    }
+    s
+}
+
 /// Infers the filetype and validates the file is readable as that type.
 pub fn get_filetype(
     _args: &crate::args::Args,
-    fargs: &FileCommand,
+    sargs: &FileSharedArgs,
     file_contents: &str,
+    source: &Source,
 ) -> Result<FileType, Zerr> {
-    let ft = if [fargs.json, fargs.yaml, fargs.toml]
+    let ft = if [sargs.json, sargs.yaml, sargs.toml]
         .iter()
         .filter(|x| **x)
         .count()
@@ -49,24 +65,28 @@ pub fn get_filetype(
     {
         return Err(zerr!(
             Zerr::FileCmdUsageError,
-            "Only one of '--json', '--yaml' or '--toml' can be specified."
+            "Only one of {} can be specified.",
+            valid_ft_opts_str()
         ));
-    } else if fargs.json {
+    } else if sargs.json {
         FileType::Json
-    } else if fargs.yaml {
+    } else if sargs.yaml {
         FileType::Yaml
-    } else if fargs.toml {
+    } else if sargs.toml {
         FileType::Toml
     } else {
         // No specific given, need to infer:
 
         // First try to infer from the file extension:
-        let maybe_ft = if let Some(ext) = fargs.filepath.extension() {
+        let maybe_ft = if let Some(ext) = source.file_ext() {
             let ext = ext.to_str().ok_or_else(|| {
-                zerr!(
-                    Zerr::InternalError,
+                zerr_int!(
                     "Could not read file extension for file: '{}'.",
-                    fargs.filepath.display()
+                    if let Some(fp) = source.filepath() {
+                        fp.display().to_string()
+                    } else {
+                        "(contents passed in from command line)".to_string()
+                    }
                 )
             })?;
 
@@ -106,9 +126,9 @@ pub fn get_filetype(
                     Zerr::FileCmdUsageError,
                     "{}",
                     if num_succ == 0 {
-                        "Filetype could not be inferred automatically when file extension is unknown, parsing failed using all filetype parsers."
+                        "Filetype could not be inferred automatically when file extension is unknown, parsing failed using all filetype parsers.".to_string()
                     } else {
-                        "Filetype could not be inferred automatically when file extension is unknown, multiple filetype parsers can decode the contents.\nSpecify e.g. --json, --yaml or --toml to disambiguate."
+                        format!("Filetype could not be inferred automatically when file extension is unknown, multiple filetype parsers can decode the contents.\nSpecify e.g. {} to disambiguate.", valid_ft_opts_str())
                     }
                 );
 

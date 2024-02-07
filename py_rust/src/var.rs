@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 
 use crate::{
-    args::{ReadOutputFormat, ReadVarCommand},
+    args::{ReadOutputFormat, VarCommand},
     prelude::*,
 };
 
 /// Read a finalised config variable.
-pub fn read_var(args: &crate::args::Args, read: &ReadVarCommand) -> Result<(), Zerr> {
+pub fn read_var(args: &crate::args::Args, read: &VarCommand) -> Result<(), Zerr> {
     // Note conf.context will only contain variable requested, rest won't be processed,
     // use conf.raw to see what's actually in the config file.
     let conf = crate::config::load(

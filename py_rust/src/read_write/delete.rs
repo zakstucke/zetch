@@ -1,14 +1,15 @@
-use super::{filetype::FileType, langs, raise_invalid_path, traverser::TravNode};
-use crate::{args::FileCommand, prelude::*};
+use super::{filetype::FileType, langs, raise_invalid_path, source::Source, traverser::TravNode};
+use crate::{args::DelCommand, prelude::*};
 
 /// Handle deletions.
 ///
 /// Note the file should already be checked to be valid for the given type and so the initial load should raise InternalError if it fails (aka it shouldn't fail.)
 pub fn handle_delete(
-    fargs: &FileCommand,
+    _fargs: &DelCommand,
     path: &[&str],
     ft: FileType,
     file_contents: String,
+    source: Source,
 ) -> Result<(), Zerr> {
     let mut manager = langs::Manager::new(ft, &file_contents)?;
 
@@ -57,7 +58,7 @@ pub fn handle_delete(
     };
 
     // Rewrite the file:
-    std::fs::write(&fargs.filepath, manager.rewrite()?).change_context(Zerr::InternalError)?;
+    source.write(&manager.rewrite()?)?;
 
     Ok(())
 }

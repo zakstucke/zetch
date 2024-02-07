@@ -65,14 +65,24 @@ pub struct Args {
 pub enum Command {
     /// Render all templates found whilst traversing the given root (default).
     Render(RenderCommand),
+
+    /// Read a finalised context variable from the config file.
+    Var(VarCommand),
+
+    /// Read sections of json/toml/yaml/yml files various file types from the command line, outputting in json.
+    Read(ReadCommand),
+    /// Put/modify sections of json/toml/yaml/yml files, preserving comments and existing formatting where possible.
+    Put(PutCommand),
+    /// Delete sections of json/toml/yaml/yml files, preserving comments and existing formatting where possible.
+    #[clap(aliases = &["delete"])]
+    Del(DelCommand),
+
     /// Initialize the config file in the current directory.
     Init(InitCommand),
+
     /// Replace a template matcher with another, e.g. zetch -> zet
     ReplaceMatcher(ReplaceMatcherCommand),
-    /// Read a finalised context variable from the config file.
-    Var(ReadVarCommand),
-    /// Write to various file types from the command line, preserving comments and existing formatting where possible.
-    File(FileCommand),
+
     /// Display zetch's version
     Version {
         #[arg(long, value_enum, default_value = "text")]
@@ -116,7 +126,7 @@ pub enum ReadOutputFormat {
 }
 
 #[derive(Clone, Debug, clap::Parser)]
-pub struct ReadVarCommand {
+pub struct VarCommand {
     /// The context variable from the config file to read.
     #[clap()]
     pub var: String,
@@ -129,32 +139,20 @@ pub struct ReadVarCommand {
     pub output: ReadOutputFormat,
 }
 
-#[derive(Clone, Debug, clap::Parser)]
-pub struct FileCommand {
-    /// The file to write to.
-    pub filepath: PathBuf,
-
-    /// The '.' separated path to write to. E.g. 'context.env.foo.default' or '.' for the file root. Any contents at this path will be overwritten.
-    pub path: String,
-
-    /// The value to write to the given path.
-    #[clap(short = 'p', long = "put")]
-    pub put: Option<String>,
-
-    #[clap(short = 'd', long = "delete")]
-    pub delete: bool,
-
-    /// By default all values will be treated as strings, use this flag to coerce the value as a different type. Same usage as coerce in config.
-    #[clap(long = "coerce")]
-    pub coerce: Option<Coerce>,
-
-    /// Read only: the output format to print in.
+/// Shared arguments for read, put and del commands.
+#[derive(Clone, Debug, clap::Args)]
+pub struct FileSharedArgs {
+    /// The filepath to read/modify, or the file contents as a string.
     ///
-    /// - raw (default) -> same as json except simple string output is printed without quotes, to allow for easier command chaining.
+    /// When the source provided is a string,
+    /// put and del will output the modified contents to stdout,
+    /// rather than writing to the file.
+    pub source: String,
+
+    /// The '.' separated path from the input to read, delete or put to.
     ///
-    /// - json -> json compatible output.
-    #[arg(short, long, default_value = "raw")]
-    pub output: ReadOutputFormat,
+    /// E.g. 'context.env.foo.default'.
+    pub content_path: String,
 
     /// The filetype being read, should be specified when the filetype cannot be inferred automatically.
     #[clap(long = "json", default_value = "false")]
@@ -167,6 +165,49 @@ pub struct FileCommand {
     /// The filetype being read, should be specified when the filetype cannot be inferred automatically.
     #[clap(long = "toml", default_value = "false")]
     pub toml: bool,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct ReadCommand {
+    #[clap(flatten)]
+    pub shared: FileSharedArgs,
+
+    /// By default all values will be treated as strings, use this flag to coerce the value as a different type.
+    ///
+    /// Hint: same usage as coerce in config.
+    #[clap(long = "coerce")]
+    pub coerce: Option<Coerce>,
+
+    /// The output format to print to stdout in.
+    ///
+    /// - raw (default) -> same as json except simple string output is printed without quotes, to allow for easier command chaining.
+    ///
+    /// - json -> json compatible output.
+    #[arg(short, long, default_value = "raw")]
+    pub output: ReadOutputFormat,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct PutCommand {
+    #[clap(flatten)]
+    pub shared: FileSharedArgs,
+
+    /// The value to write to the given path.
+    ///
+    /// By default treated as a string, use the --coerce flag to coerce the value as a different type.
+    pub put: String,
+
+    /// By default all values will be treated as strings, use this flag to coerce the value as a different type.
+    ///
+    /// Hint: same usage as coerce in config.
+    #[clap(long = "coerce")]
+    pub coerce: Option<Coerce>,
+}
+
+#[derive(Clone, Debug, clap::Parser)]
+pub struct DelCommand {
+    #[clap(flatten)]
+    pub shared: FileSharedArgs,
 }
 
 #[derive(Clone, Debug, clap::Parser)]
