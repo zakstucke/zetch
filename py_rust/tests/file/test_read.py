@@ -126,7 +126,7 @@ def test_file_cmd_read(
         filepath = manager.tmpfile(file_contents, full_name=filename)
         last_change_time = utils.file_mod_time(str(filepath))
 
-        result = cli.run(["zetch", "file", str(filepath), *args])
+        result = cli.run(["zetch", "read", str(filepath), *args])
 
         assert result == stdout_expected
 

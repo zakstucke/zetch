@@ -1,5 +1,5 @@
-use super::{filetype::FileType, langs, raise_invalid_path, traverser::TravNode};
-use crate::{args::FileCommand, coerce::coerce, prelude::*};
+use super::{filetype::FileType, langs, raise_invalid_path, source::Source, traverser::TravNode};
+use crate::{args::PutCommand, coerce::coerce, prelude::*};
 
 static EMPTY_OBJ: &str = "{}";
 
@@ -7,14 +7,14 @@ static EMPTY_OBJ: &str = "{}";
 ///
 /// Note the file should already be checked to be valid for the given type and so the initial load should raise InternalError if it fails (aka it shouldn't fail.)
 pub fn handle_put(
-    fargs: &FileCommand,
+    fargs: &PutCommand,
     path: &[&str],
-    to_write: String,
     ft: FileType,
     file_contents: String,
+    source: Source,
 ) -> Result<(), Zerr> {
     let mut manager = langs::Manager::new(ft, &file_contents)?;
-    let to_write_val = coerce(serde_json::Value::String(to_write), &fargs.coerce)?;
+    let to_write_val = coerce(serde_json::Value::String(fargs.put.clone()), &fargs.coerce)?;
     let to_write_json = serde_json::to_string(&to_write_val).change_context(Zerr::InternalError)?;
 
     let mut modified = false;
@@ -103,7 +103,7 @@ pub fn handle_put(
 
     // Rewrite the file only if modified, if not don't want to touch:
     if modified {
-        std::fs::write(&fargs.filepath, manager.rewrite()?).change_context(Zerr::InternalError)?;
+        source.write(&manager.rewrite()?)?;
     }
 
     Ok(())

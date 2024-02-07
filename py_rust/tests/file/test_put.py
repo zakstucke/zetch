@@ -179,7 +179,7 @@ def test_file_cmd_put(
         filepath = manager.tmpfile(file_contents, full_name=filename)
         last_change_time = utils.file_mod_time(str(filepath))
 
-        result = cli.run(["zetch", "file", str(filepath), *args, "--put", put_val])
+        result = cli.run(["zetch", "put", str(filepath), *args, put_val])
 
         # Confirm contents has been updated correctly:
         if filepath.read_text().strip() != file_contents_out_expected.strip():
@@ -197,3 +197,20 @@ def test_file_cmd_put(
         # If file shouldn't change, make sure the file wasn't touched at an OS level:
         if file_contents == file_contents_out_expected:
             utils.assert_file_not_modified(str(filepath), last_change_time)
+
+
+@pytest.mark.parametrize(
+    "args, expected_stdout",
+    [
+        # Json:
+        (['{"foo": "bar"}', "foo", "baz", "--json"], '{\n  "foo": "baz"\n}'),
+        # Yaml:
+        (["foo: bar", "foo", "baz"], "foo: baz"),
+        # Toml:
+        (['foo = "bar"', "foo", "baz", "--toml"], 'foo = "baz"'),
+    ],
+)
+def test_file_cmd_put_inline_content(args: "list[str]", expected_stdout: str):
+    """Confirm works and outputs updated contents to stdout when inline content used."""
+    result = cli.run(["zetch", "put", *args])
+    assert result == expected_stdout

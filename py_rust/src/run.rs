@@ -11,7 +11,16 @@ use crate::{
 };
 
 // If one of these is the first argument, won't auto assume example_project_py_rs render subcommand
-const ROOT_ARGS: &[&str] = &["-h", "--help", "help", "-V", "--version", "version"];
+const ROOT_ARGS: &[&str] = &[
+    "-h",
+    "--help",
+    "help",
+    "-V",
+    "--version",
+    "version",
+    // Including delete in here as its a del alias but has_subcommand() doesn't seem to work with aliases:
+    "delete",
+];
 const DEFAULT_SUBCOMMAND: &str = "render";
 
 pub fn run() -> Result<(), Zerr> {
@@ -43,10 +52,13 @@ pub fn run() -> Result<(), Zerr> {
             ..Default::default()
         });
     } else if !args.log_level_args.silent {
-        // If its a read command (i.e. the output is important, only show errors, to prevent polluting the output)
+        // If its read, put, delete or var subcommands, stdout is important, so only show error!() in default mode:
         if matches!(
             &args.command,
-            args::Command::File(_) | args::Command::Var(_)
+            args::Command::Read(_)
+                | args::Command::Put(_)
+                | args::Command::Del(_)
+                | args::Command::Var(_)
         ) {
             log_layers.push(SubLayer {
                 variant: SubLayerVariant::Stdout {},

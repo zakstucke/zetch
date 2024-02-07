@@ -125,7 +125,7 @@ def test_file_cmd_delete(
         filepath = manager.tmpfile(file_contents, full_name=filename)
         last_change_time = utils.file_mod_time(str(filepath))
 
-        result = cli.run(["zetch", "file", str(filepath), *args, "--delete"])
+        result = cli.run(["zetch", "del", str(filepath), *args])
 
         # Confirm contents has been updated correctly:
         if filepath.read_text().strip() != file_contents_out_expected.strip():
@@ -143,3 +143,24 @@ def test_file_cmd_delete(
         # If file shouldn't change, make sure the file wasn't touched at an OS level:
         if file_contents == file_contents_out_expected:
             utils.assert_file_not_modified(str(filepath), last_change_time)
+
+
+@pytest.mark.parametrize(
+    "args, expected_stdout",
+    [
+        # Json:
+        (['{"foo": "bar", "ree": "roo"}', "ree", "--json"], '{\n  "foo": "bar"\n}'),
+        # Yaml:
+        (["foo: bar\n\nree: roo", "ree"], "foo: bar"),
+        # Toml:
+        (['foo = "bar"\n\nree = "roo"', "ree", "--toml"], 'foo = "bar"'),
+    ],
+)
+def test_file_cmd_delete_inline_content(args: "list[str]", expected_stdout: str):
+    """Confirm works and outputs updated contents to stdout when inline content used."""
+    result = cli.run(["zetch", "del", *args])
+    assert result == expected_stdout
+
+    # Also may as well check delete alias works too:
+    result = cli.run(["zetch", "delete", *args])
+    assert result == expected_stdout
