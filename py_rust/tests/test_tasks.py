@@ -9,19 +9,6 @@ from .helpers.tmp_file_manager import TmpFileManager
 from .helpers.types import InputConfig, Task
 
 
-def create_file_cmd(filepath: str, content: str) -> str:
-    """Create a command that creates the file with given contents if missing, if already exists exits with code 1."""
-    content = content.replace('"', '\\"')
-
-    # If windows:
-    if os.name == "nt":
-        return (
-            f'cmd.exe /c "IF EXIST {filepath} ( EXIT /B 1 ) ELSE ( ECHO "{content}" > {filepath} )"'
-        )
-    else:
-        return f"bash -c \"[ -e {filepath} ] && exit 1 || echo '{content}' > {filepath}\""
-
-
 def check_file(filepath: str, content: str):
     with open(filepath, "r") as file:
         assert file.read().strip() == content.strip()
@@ -35,7 +22,7 @@ def check_file(filepath: str, content: str):
             (
                 f"basic_{typ}",
                 typ,
-                [{"commands": [create_file_cmd("file.txt", "hello")]}],
+                [{"commands": ["echo hello > file.txt"]}],
                 {},
                 lambda man: lambda: check_file(os.path.join(man.root_dir, "file.txt"), "hello"),
             )
@@ -49,7 +36,7 @@ def check_file(filepath: str, content: str):
                 [
                     {
                         "commands": [
-                            create_file_cmd("file.json", '{"ree": "bar"}'),
+                            'echo \'{"ree": "bar"}\' > file.json',
                             "zetch put file.json value $(zetch read file.json ree)",
                             "zetch del file.json ree",
                         ]
@@ -69,7 +56,7 @@ def check_file(filepath: str, content: str):
             [
                 {
                     "commands": [
-                        create_file_cmd("file.json", "{}"),
+                        'echo "{}" > file.json',
                         "zetch put file.json value $(zetch var FOO)",
                     ]
                 }
