@@ -99,16 +99,8 @@ DEFAULT_TEMPLATE_SRC = "Hello, {{ var }}!{# this is an ignored comment #}\nmyboo
                 "block_end": "%}",
                 "comment_start": "{#",
                 "comment_end": "#}",
-                "keep_trailing_newline": True,
-                "allow_undefined": False,
             },
             "Hello, World!\nmybool is True\n",
-        ),
-        # Newline should be stripped when keep_trailing_newline is False:
-        (
-            DEFAULT_TEMPLATE_SRC,
-            {"keep_trailing_newline": False},
-            "Hello, World!\nmybool is True",
         ),
         # Custom syntax matchers should work:
         (
@@ -168,40 +160,16 @@ def test_engine_config(template_src: str, engine_config: Engine, expected: str):
             "Hello, World! My name is Bob!",
             False,
         ),
-        # Should raise when name in undefined as by default banned:
+        # Should raise when name in undefined as this is banned:
         (
             "Hello, {{ var }}! My name is {{ name }}!",
             {"context": {"static": {"var": {"value": "World"}}}},
             "Failed to render template: 'undefined value",
             True,
         ),
-        # Should also raise when specifically set:
-        (
-            "Hello, {{ var }}! My name is {{ name }}!",
-            {
-                "context": {"static": {"var": {"value": "World"}}},
-                "engine": {
-                    "allow_undefined": False,
-                },
-            },
-            "Failed to render template: 'undefined value",
-            True,
-        ),
-        # Should be fine when allowed:
-        (
-            "Hello, {{ var }}! My name is {{ name }}!",
-            {
-                "context": {"static": {"var": {"value": "World"}}},
-                "engine": {
-                    "allow_undefined": True,
-                },
-            },
-            "Hello, World! My name is !",
-            False,
-        ),
     ],
 )
-def test_allow_undefined(
+def test_undefined_banned(
     template_src: str, config: InputConfig, expected: str, expected_is_err_match: bool
 ):
     """Check errors on unknown context when no allow_defined or allow_defined is False, but when true should work fine."""

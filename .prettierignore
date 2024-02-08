@@ -10,6 +10,9 @@ target
 site
 docs/js_ref/
 docs/rust_ref/
+*.yml
+*.yaml
+*.toml
 *.zetch.*
 
 # Specific to zetch, disable for e.g. some test data that needs its formatting:

@@ -27,8 +27,6 @@ class Engine(tp.TypedDict):
     block_end: tp.NotRequired[str]
     comment_start: tp.NotRequired[str]
     comment_end: tp.NotRequired[str]
-    keep_trailing_newline: tp.NotRequired[bool]
-    allow_undefined: tp.NotRequired[bool]
     custom_extensions: tp.NotRequired["list[str]"]
 
 

@@ -44,7 +44,7 @@ static SCHEMA_DIRECTIVE_PREFIX: &str = "#:schema ";
 /// Note this should be prepended with `"#:schema"`
 fn get_schema_directive() -> String {
     format!(
-        "https://github.com/zakstucke/zetch/blob/v{}/py_rust/src/config/schema.json",
+        "https://raw.githubusercontent.com/zakstucke/zetch/v{}/py_rust/src/config/schema.json",
         env!("CARGO_PKG_VERSION")
     )
 }
@@ -89,8 +89,6 @@ exclude = []
 matchers = ["zetch"]
 
 [engine]
-keep_trailing_newline = true
-allow_undefined = false
 custom_extensions = []
 
 [context.static]
