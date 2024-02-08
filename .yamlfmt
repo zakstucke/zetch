@@ -1,0 +1,11 @@
+doublestar: true  # Include/exclude patterns will use git style globbing
+
+formatter:
+  type: basic
+  max_line_length: 100
+  pad_line_comments: 2
+  retain_line_breaks: true
+
+exclude:
+  # Checking zetch put output, which is not formatted same as rest of repo:
+  - "**/tests/file/test_data/*"

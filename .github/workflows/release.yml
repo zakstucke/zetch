@@ -12,10 +12,8 @@ on:
         required: false
         default: false
       py_rust_version:
-        description: "Rust-backed Python Version (now 0.0.10)"
-        default: "0.0.10"
-
-
+        description: "Rust-backed Python Version"
+        default: "0.0.0"
 
 jobs:
   commit_versions:
@@ -34,8 +32,12 @@ jobs:
       - uses: actions/setup-python@v4
       - uses: ./.github/actions/install-pre-commit
 
+      - name: Install zetch
+        run: pip install zetch
 
 
+
+      # Formatting and checking uses nightly rather than stable:
       - uses: dtolnay/rust-toolchain@nightly
         if: ${{ inputs.py_rust_release }} || ${{ inputs.rust_release }}
         with:
@@ -44,7 +46,7 @@ jobs:
       - name: Update Rust-backed Python version
         if: ${{ inputs.py_rust_release }}
         run: |
-          ./dev_scripts/pkg.sh ver_py_rust_update ${{ inputs.py_rust_version }}
+          zetch put zetch.config.toml context.static.PY_RUST_VERSION.value ${{ inputs.py_rust_version }}
 
 
       - name: add and format added files with pre-commit
@@ -69,8 +71,7 @@ jobs:
           echo $sha_new
           echo "::set-output name=SHA::$sha_new"
 
-      - run:
-            echo ${{ steps.sha.outputs.SHA }}
+      - run: echo ${{ steps.sha.outputs.SHA }}
 
   # Rebuild docs each time this is run, note there is currently no versioning in the docs for each of the individually packages, will need to be added when a public package is being properly released
   docs:
@@ -88,7 +89,7 @@ jobs:
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version:  "3.12"
+          python-version: "3.12"
           cache: true
           cache-dependency-path: 'docs/pdm.lock'
 

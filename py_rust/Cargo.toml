@@ -1,7 +1,28 @@
+[package]
+name = "zetch"
+version = "0.0.0"
+edition = "2021"
+readme = "README.md"
+license = "MIT"
+# This crate should only be released as a python package, so disable any rust side crates publishing:
+publish = false
+
+[lib]
+name = "zetch"
+crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+# Add your dependencies here
 [dependencies]
-chrono = '0.4.31'
 colored = '2'
-error-stack = '0.4'
+tracing = "0.1"
+error-stack = "0.4"
+bitbazaar = { version = '0.0.28', features = ['cli'] }
+pyo3 = { version = '0.20.0', features = ['extension-module', 'chrono', 'generate-import-lib'] }
+parking_lot = { version = "0.12", features = ['deadlock_detection', 'serde'] }
+strum = { version = '0.25', features = ['derive'] }
+clap = { version = "4.4", features = ["derive", "string"] }
+chrono = '0.4.31'
 fjson = '0.3.1'
 ignore = '0.4.21'
 json-patch = '1.2.0'
@@ -14,65 +35,24 @@ sha2 = '0.10.8'
 tempfile = '3.9.0'
 toml = '0.8.8'
 toml_edit = '0.21.0'
-tracing = '0.1'
 valico = '4.0.0'
-
-[dependencies.bitbazaar]
-features = ['cli']
-version = '0.0.28'
-
-[dependencies.clap]
-features = ['derive', 'string']
-version = '4.4'
-
-[dependencies.minijinja]
-features = ['loader', 'custom_syntax', 'preserve_order', 'json', 'urlencode']
-version = '1.0.10'
-
-[dependencies.minijinja-contrib]
-features = ['datetime']
-version = '1.0.10'
-
-[dependencies.parking_lot]
-features = ['nightly', 'deadlock_detection', 'serde']
-version = '0.12.1'
-
-[dependencies.pyo3]
-features = ['extension-module', 'chrono', 'generate-import-lib']
-version = '0.20.0'
-
-[dependencies.serde]
-features = ['derive', 'rc']
-version = '1.0.193'
-
-[dependencies.strum]
-features = ['derive']
-version = '0.25'
-
-[dependencies.tokio]
-features = ['macros', 'sync', 'signal', 'rt']
-version = '1.35'
-
-[lib]
-crate-type = ['cdylib']
-name = 'zetch'
-path = 'src/lib.rs'
-
-[package]
-edition = '2021'
-license = 'MIT'
-name = 'zetch'
-publish = false
-readme = 'README.md'
-version = '0.0.10'
-
-[profile]
+serde = { version = '1.0', features = ['derive', 'rc'] }
+tokio = { version = "1.35", features = ['macros', 'sync', 'signal', 'rt'] }
+minijinja = { version = '1.0.10', features = [
+  'loader',
+  'custom_syntax',
+  'preserve_order',
+  'json',
+  'urlencode',
+] }
+minijinja-contrib = { version = '1.0.10', features = ['datetime'] }
 
 [profile.profiler]
-debug = true
+inherits = "release" # Adds on top of the default release profile
 incremental = true
-inherits = 'release'
+debug = true
 strip = false
 
+# Modifying the test runtime (from release is just so much faster)
 [profile.test]
-inherits = 'release'
+inherits = "release" # Adds on top of the default release profile
