@@ -434,6 +434,7 @@ def test_custom_ext_nice_user_invalid_errs(
 # DONE allow input as string instead of file, that should print to stdout for read, write, del
 # DONE probably remove most engine config, maybe making top level if minimal enough, we don't want to mess with files and error early (so enforce no_undefined and keep_trailing_newline)
 # DONE fix schema - not sure why its not working
+# TODO: order everything in the lockfile to prevent diffs when nothings actually changed.
 # TODO some sort of heavy/light/modes solution to caching values and not recomputing, maybe also for ban-defaults etc. maybe a modes top level config section, where a mode can override any config, set ban-defaults etc, need to think, but also need a way to only run certain post and pre in certain modes, need to think on best api.
 # TODO think about interop with jinja,cookiecutter,copier,etc
 # TODO decide and document optimal formatting, probably using scolvins and making sure it can working with custom extensions.
