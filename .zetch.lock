@@ -1,17 +1,16 @@
 {
-  "version": "0.0.2",
+  "version": "0.0.10",
   "files": {
-    "CODE_OF_CONDUCT.zetch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
-    "setup.zetch.cfg": "77bc7fc955b76afa89b8d1aaa1e1dba991a3db8fbd188af96a4f71ef5c38be4b",
-    "CONTRIBUTING.zetch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
-    "docs/CONTRIBUTING.zetch.md": "1dd9ac3bddcc64ec6725fce7eebc9c67ba6f4c17eb78ddac956ef2a73bec364c",
-    "README.zetch.md": "9d85b0018f7ec86a5bf7af90158b7b18d9e7a08e10cd2656fda3e6c3a6012b2b",
     "docs/CODE_OF_CONDUCT.zetch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
-    "py_rust/README.zetch.md": "3433c7e3173890ce85efea4e93bd92c70334be98bacb5999c19140178096b3ad",
-    ".github/workflows/release.yml.zetch": "bc1dca752515d2839ae468fe3bf2b972fcb079cb80dd14b1c5b9cf21c2d45c06",
+    "docs/index.zetch.md": "2eda002221d0f22c813a6de54c44a78fc029f516f023c8f7b52bdd437f22c54f",
+    "README.zetch.md": "bf36c066d493db3c44a95ef89989ce310c8905df162d772db21913cc7a113311",
+    "CONTRIBUTING.zetch.md": "c1163c54e695dc64174c047f48976e927b6aae4f6fbf4c94ebd06ef56f8ba02f",
     "LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "docs/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
+    "docs/CONTRIBUTING.zetch.md": "c1163c54e695dc64174c047f48976e927b6aae4f6fbf4c94ebd06ef56f8ba02f",
+    "py_rust/README.zetch.md": "2eda002221d0f22c813a6de54c44a78fc029f516f023c8f7b52bdd437f22c54f",
     "py_rust/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b",
-    "docs/index.zetch.md": "3433c7e3173890ce85efea4e93bd92c70334be98bacb5999c19140178096b3ad"
+    "CODE_OF_CONDUCT.zetch.md": "bf106326ffc75f5167cfde27c997c77c6b97c843a9e392b564355d0e70e50b97",
+    "setup.zetch.cfg": "76cf2925102bde5a90d4f256f63ecfe535670d1ed11a90e807db6b8839168804",
+    "docs/LICENSE.zetch.md": "d2c12e539d357957b950a54a5477c3a9f87bd2b3ee707be7a4db7adaf5aacc2b"
   }
 }

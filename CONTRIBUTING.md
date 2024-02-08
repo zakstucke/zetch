@@ -39,10 +39,14 @@ Request features on the [Issue Tracker](https://github.com/zakstucke/zetch/issue
 -   Install [`pipx`](https://pypa.github.io/pipx/)
 -   `./dev_scripts/initial_setup.sh initial_setup`
 
+
+
+
 ### Rust-backed Python library
 
 -   Make sure Python 3.8+ is installed
 -   Install [`rust`](https://www.rust-lang.org/tools/install)
+
 
 ### Running tests
 
@@ -63,3 +67,4 @@ Feel free to submit early, though—we can always iterate on this.
 
 It is recommended to open an issue before starting work on anything.
 This will allow a chance to talk it over with the owners and validate your approach.
+

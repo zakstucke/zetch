@@ -1,14 +1,19 @@
-# :schema https://github.com/zakstucke/zetch/blob/v0.0.9/py_rust/src/config/schema.json
+#:schema https://raw.githubusercontent.com/zakstucke/zetch/v0.0.10/py_rust/src/config/schema.json
 
 ignore_files = [".gitignore"]
+
 exclude = []
 
 [engine]
 custom_extensions = []
 
+# Sync pkg versions in non templated files as a post task:
+[[tasks.post]]
+commands = ["./dev_scripts/pkg.sh update_versions"]
+
 [context.static]
+PY_RUST_VERSION = { value = "0.0.0" }
 
 [context.env]
 
 [context.cli]
-PY_RUST_VERSION = {commands = ["./dev_scripts/pkg.sh ver_py_rust"]}

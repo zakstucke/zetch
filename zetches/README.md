@@ -1,3 +1,4 @@
+
 # Zetch
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg)][license]
@@ -6,6 +7,12 @@
 [license]: https://github.com/zakstucke/zetch/blob/main/LICENSE.md
 
 In-place, continuous templater.
+
+
+
+
+
+
 
 [![PyPI](https://img.shields.io/pypi/v/zetch.svg)][pypi status]
 [![Status](https://img.shields.io/pypi/status/zetch.svg)][pypi status]
@@ -21,11 +28,13 @@ pip install zetch
 
 Binaries are available for:
 
--   **Linux**: `x86_64`, `aarch64`, `i686`, `armv7`, `ppc64le`, `s390x`, `musl-x86_64` & `musl-aarch64`
--   **MacOS**: `x86_64`, `aarch64`
--   **Windows**: `x86_64`, `aarch64`, `i686`
+* **Linux**: `x86_64`, `aarch64`, `i686`, `armv7`, `ppc64le`, `s390x`,  `musl-x86_64` & `musl-aarch64`
+* **MacOS**: `x86_64`, `aarch64`
+* **Windows**: `x86_64`, `aarch64`, `i686`
 
 If your platform isn't supported, [file an issue](https://github.com/zakstucke/zetch/issues).
+
+
 
 ## Usage
 

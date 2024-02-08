@@ -9,7 +9,8 @@ build () {
 
 
     # Build the docs locally:
-    pdm run -p ./docs mkdocs build
+    # If fails first time, run again with the weird python fallback to fix:
+    pdm run -p ./docs mkdocs build || PY_DOC_FALLBACK="1" pdm run -p ./docs mkdocs build
 }
 
 serve () {

@@ -5,11 +5,6 @@
     }
   ],
   "settings": {
-    // Prettier config is its own subpackage
-    "prettier.prettierPath": "./prettier/node_modules/prettier",
-    "prettier.configPath": "./prettier/prettier.config.cjs",
-
-
     "python.defaultInterpreterPath": "py_rust/.venv/bin/python",
     "ruff.path": ["py_rust/.venv/bin/ruff"],
 
@@ -18,33 +13,33 @@
       "./py_rust/Cargo.toml",
     ],
     "rust-analyzer.rustfmt.extraArgs": ["+nightly"], // We use nightly rustfmt for extra features.
-    "rust-analyzer.cargo.allFeatures": true,
+    "rust-analyzer.cargo.features": "all", // Enable all features in cargo.toml for type hinting
 
+    "biome.lspBin": "/usr/local/bin/biome", // Path to the biome binary installed in initial_setup.sh
+    "editor.codeActionsOnSave": {
+      "quickfix.biome": "always",
+      "source.organizeImports.biome": "always"
+    },
 
     "[javascript]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.defaultFormatter": "biomejs.biome",
       "editor.formatOnSave": true,
         "editor.formatOnPaste": false
     },
     "[javascriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.defaultFormatter": "biomejs.biome",
         "editor.formatOnSave": true,
         "editor.formatOnPaste": false
     },
     "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.defaultFormatter": "biomejs.biome",
         "editor.formatOnSave": true,
         "editor.formatOnPaste": false
     },
     "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.defaultFormatter": "biomejs.biome",
         "editor.formatOnSave": true,
         "editor.formatOnPaste": false
-    },
-    "[yaml]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode",
-      "editor.formatOnSave": true,
-      "editor.formatOnPaste": false
     },
     "[markdown]": {
       // Disable markdown formatting because sometimes indents are important in ways the formatter doesn't understand:
@@ -56,12 +51,19 @@
       "editor.formatOnSave": false,
       "editor.formatOnPaste": false
     },
+    "[yaml]": {
+      // Yaml formatting, same as precommit (needs extension https://marketplace.visualstudio.com/items?itemName=bluebrown.yamlfmt)
+      // Configure from ./.yamlfmt
+      "editor.defaultFormatter": "bluebrown.yamlfmt",
+      "editor.formatOnSave": true,
+      "editor.formatOnPaste": false
+    },
     "[toml]": {
-      // Having endless problems with toml formatting, need to use the same formatter in pre-commit and vscode, nothing supports both
-      // prettier has support for toml via a plugin, but its buggy and doesn't quite work with prettier, use that for both once it does.
-      // "editor.defaultFormatter": "esbenp.prettier-vscode",
-      "editor.formatOnPaste": false,
-      "editor.formatOnSave": false
+      // Toml formatting, same as precommit (needs extension https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml)
+      // Configure from ./taplo.toml
+      "editor.defaultFormatter": "tamasfe.even-better-toml",
+      "editor.formatOnSave": true,
+      "editor.formatOnPaste": false
     },
     "[rust]": {
       "editor.defaultFormatter": "rust-lang.rust-analyzer",
@@ -96,6 +98,7 @@
       "tag:yaml.org,2002:python/name:pymdownx.superfences.fence_code_format"
     ],
     // For the tailwind extension if using:
+    // Note: biome class sorting should be possible soon: https://github.com/biomejs/biome/issues/1274
     "tailwindCSS.experimental.classRegex": [
       // Allows tailwind autocomplete to work in "classnames" function and "cx" shorthand for it.
       // https://github.com/tailwindlabs/tailwindcss/issues/7553
@@ -156,7 +159,10 @@
       "**/docs/js_ref/**": true,
       "**/docs/rust_ref/**": true,
       "**/py_stubs/**": true,
-      "**/dist/**": true
+      "**/dist/**": true,
+      "**/package-lock.json": true,
+      "**/Cargo.lock": true,
+      "**/pdm.lock": true,
     }
   },
   "launch": {
@@ -165,7 +171,7 @@
       {
         "justMyCode": false,
         "name": "Python: Monitor Port 54321",
-        "type": "python",
+        "type": "debugpy",
         "request": "attach",
         "connect": {
           "host": "localhost",

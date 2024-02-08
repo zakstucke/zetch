@@ -1,7 +1,7 @@
 # This is a sample TOML file with various TOML features and comments
 
-name = "John Doe"  # Inline comment
-age = 30  # Multiline
+name = "John Doe" # Inline comment
+age = 30          # Multiline
 isStudent = false
 
 [address]
@@ -11,12 +11,12 @@ zipcode = "12345"
 
 [[phoneNumbers]]
 type = "home"
-number = "123-456-7890"  # This is a home phone number
+number = "123-456-7890" # This is a home phone number
 
 [[phoneNumbers]]
 # Comment above a variable property
 type = "work"
-number = "987-654-3210"  # This is a work phone number
+number = "987-654-3210" # This is a work phone number
 
 [additionalInfo]
 # Nested object with additional information
