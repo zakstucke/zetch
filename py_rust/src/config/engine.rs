@@ -73,10 +73,6 @@ pub struct Engine {
     comment_start: String,
     #[serde(default = "default_comment_end")]
     comment_end: String,
-    #[serde(default = "default_keep_trailing_newline")]
-    keep_trailing_newline: bool,
-    #[serde(default = "default_allow_undefined")]
-    allow_undefined: bool,
     #[serde(default = "default_custom_extensions")]
     pub custom_extensions: Vec<String>,
 }
@@ -91,8 +87,6 @@ impl Engine {
             variable_end: default_variable_end(),
             comment_start: default_comment_start(),
             comment_end: default_comment_end(),
-            keep_trailing_newline: default_keep_trailing_newline(),
-            allow_undefined: default_allow_undefined(),
             custom_extensions: default_custom_extensions(),
         }
     }
@@ -117,12 +111,12 @@ impl Engine {
             comment_end: self.comment_end.clone().into(),
         })
         .change_context(Zerr::InternalError)?;
-        env.set_keep_trailing_newline(self.keep_trailing_newline);
-        env.set_undefined_behavior(if self.allow_undefined {
-            minijinja::UndefinedBehavior::Lenient
-        } else {
-            minijinja::UndefinedBehavior::Strict
-        });
+
+        // Used to be user configurable, but want to modify code as little as possible, so forcibly disable modification of newlines:
+        env.set_keep_trailing_newline(true);
+
+        // Forcibly prevent undefined vars:
+        env.set_undefined_behavior(minijinja::UndefinedBehavior::Strict);
 
         // Disable all default auto escaping, this caused problems with e.g. adding strings around values in json files:
         env.set_auto_escape_callback(|_: &str| -> minijinja::AutoEscape {
@@ -322,17 +316,6 @@ fn default_comment_start() -> String {
 fn default_comment_end() -> String {
     // NOTE: when changing make sure to update schema.json default for config hinting
     "#}".to_string()
-}
-
-fn default_keep_trailing_newline() -> bool {
-    // NOTE: when changing make sure to update schema.json default for config hinting
-    // Don't modify a user's source code if we can help it:
-    true
-}
-
-fn default_allow_undefined() -> bool {
-    // NOTE: when changing make sure to update schema.json default for config hinting
-    false
 }
 
 fn default_custom_extensions() -> Vec<String> {

@@ -119,20 +119,18 @@ def cfg_str(config: InputConfig) -> str:
             cfg_str(
                 {
                     "engine": {
-                        "allow_undefined": True,
-                        "keep_trailing_newline": False,
+                        "comment_start": "|||/",
+                        "comment_end": "/|||",
                     }
                 }
             ),
             {
-                "allow_undefined": True,
-                "keep_trailing_newline": False,
                 "block_start": "{%",
                 "block_end": "%}",
                 "variable_start": "{{",
                 "variable_end": "}}",
-                "comment_start": "{#",
-                "comment_end": "#}",
+                "comment_start": "|||/",
+                "comment_end": "/|||",
                 "custom_extensions": [],
             },
         ),

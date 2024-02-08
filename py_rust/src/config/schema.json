@@ -58,16 +58,6 @@
                     "description": "The pattern marking the end of a comment in a template.",
                     "default": "#}"
                 },
-                "keep_trailing_newline": {
-                    "type": "boolean",
-                    "description": "Whether to keep trailing newlines at the end of rendered templates.",
-                    "default": true
-                },
-                "allow_undefined": {
-                    "type": "boolean",
-                    "description": "Whether to render nothing silently when a template variable is undefined. When this is false an error is always raised.",
-                    "default": false
-                },
                 "custom_extensions": {
                     "type": "array",
                     "description": "A list of custom python extensions to load. Each extension must be a Python file or package (dir with an __init__.py) that uses @zetch.register_function to render custom functions which can be used in templates. Relative paths are resolved relative to the config file's directory.",
