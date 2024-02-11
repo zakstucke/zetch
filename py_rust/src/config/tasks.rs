@@ -49,7 +49,6 @@ impl Task {
         })?;
 
         // Create the bash environment:
-        error!("CONFIG DIR: {}", config_dir.display());
         let mut bash = Bash::new().chdir(config_dir);
         bash = bash.env(IN_TASK_ENV_VAR, "1");
         if let Some(cached_config_loc) = cached_config_loc {
