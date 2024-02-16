@@ -49,7 +49,7 @@ pub struct Args {
     #[command(subcommand)]
     pub command: Command,
     #[clap(flatten)]
-    pub log_level_args: bitbazaar::logging::ClapLogLevelArgs,
+    pub log_level_args: bitbazaar::log::ClapLogLevelArgs,
     /// The config file to use. Note if render command, relative and not found from working directory, will search entered root directory.
     #[arg(
         short,
