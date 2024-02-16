@@ -98,6 +98,7 @@ jobs:
           pdm sync -p ./docs
 
 
+
       - name: Build docs
         run: |
           ./dev_scripts/docs.sh build

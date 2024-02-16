@@ -15,5 +15,7 @@ commands = ["./dev_scripts/pkg.sh update_versions"]
 PY_RUST_VERSION = { value = "0.0.0" }
 
 [context.env]
+DEBUG = { default = true, coerce = "bool" }
 
 [context.cli]
+ROOT_DIR = { commands = ["pwd"] }

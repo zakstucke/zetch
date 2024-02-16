@@ -1,7 +1,4 @@
-use bitbazaar::{
-    logging::{create_subscriber, SubLayer, SubLayerFilter, SubLayerVariant},
-    timing::GLOBAL_TIME_RECORDER,
-};
+use bitbazaar::{log::GlobalLog, timing::GLOBAL_TIME_RECORDER};
 use clap::{Parser, Subcommand};
 
 use crate::{
@@ -44,50 +41,44 @@ pub fn run() -> Result<(), Zerr> {
     let args = args::Args::parse_from(py_args);
 
     // Setup global logging:
-    let mut log_layers: Vec<SubLayer> = vec![];
+    let mut builder = GlobalLog::builder();
+
     if args.log_level_args.verbose {
-        log_layers.push(SubLayer {
-            variant: SubLayerVariant::Stdout {},
-            filter: SubLayerFilter::Above(tracing::Level::TRACE),
-            ..Default::default()
-        });
+        builder = builder
+            .stdout(true, true)
+            .level_from(tracing::Level::TRACE)
+            .change_context(Zerr::InternalError)?;
     } else if !args.log_level_args.silent {
-        // If its read, put, delete or var subcommands, stdout is important, so only show error!() in default mode:
-        if matches!(
-            &args.command,
-            args::Command::Read(_)
-                | args::Command::Put(_)
-                | args::Command::Del(_)
-                | args::Command::Var(_)
-        ) {
-            log_layers.push(SubLayer {
-                variant: SubLayerVariant::Stdout {},
-                filter: SubLayerFilter::Above(tracing::Level::ERROR),
-                ..Default::default()
-            });
-        } else {
-            // Otherwise by default show info and up:
-
-            // For INFO, don't show the level:
-            log_layers.push(SubLayer {
-                variant: SubLayerVariant::Stdout {},
-                filter: SubLayerFilter::Only(vec![tracing::Level::INFO]),
-                include_lvl: false,
-                ..Default::default()
-            });
-
-            // For the rest, show the level:
-            log_layers.push(SubLayer {
-                variant: SubLayerVariant::Stdout {},
-                filter: SubLayerFilter::Above(tracing::Level::WARN),
-                ..Default::default()
-            });
-        }
+        builder = builder
+            .stdout(true, true)
+            .level_from(
+                // If its read, put, delete or var subcommands, stdout is important, so only show error!() in default mode:
+                if matches!(
+                    &args.command,
+                    args::Command::Read(_)
+                        | args::Command::Put(_)
+                        | args::Command::Del(_)
+                        | args::Command::Var(_)
+                ) {
+                    tracing::Level::ERROR
+                } else {
+                    tracing::Level::INFO
+                },
+            )
+            .change_context(Zerr::InternalError)?;
     }
 
-    create_subscriber(log_layers)
-        .change_context(Zerr::InternalError)?
-        .into_global();
+    // Stdout if enabled:
+    if let Some(level) = args.log_level_args.level() {
+        builder = builder
+            .stdout(true, true)
+            .level_from(level)
+            .change_context(Zerr::InternalError)?;
+    }
+
+    // Build and set as global logger:
+    let log = builder.build().change_context(Zerr::InternalError)?;
+    log.register_global().change_context(Zerr::InternalError)?;
 
     let result = arg_matcher(args);
 
