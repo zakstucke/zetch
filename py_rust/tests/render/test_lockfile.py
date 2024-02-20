@@ -1,4 +1,6 @@
+import collections
 import json
+import uuid
 from pathlib import Path
 
 import pytest
@@ -155,3 +157,27 @@ def test_lockfile_only_write_when_needed():
                     ),
                 },
             }
+
+
+def test_lockfile_deterministic_ordering():
+    """Make sure the lockfile always serializes object keys in alphabetical order.
+
+    This makes git diffs on the lockfile much less likely to conflict, and only show changes when real.
+    """
+    with TmpFileManager() as manager:
+        filenames = [
+            str(manager.tmpfile(content="Hello!", full_name=f"{uuid.uuid4()}.zetch.txt").name)
+            for _ in range(10)
+        ]
+        cli.render(
+            manager.root_dir,
+            manager.create_cfg({}),
+        )
+        with open(get_lockfile_path(manager.root_dir), "r") as file:
+            # In cur python think will be ordered by default, but older pythons might not be,
+            # so use ordered dict in json decoder to be sure order unaffected by loading into python:
+            lock = json.load(file, object_pairs_hook=collections.OrderedDict)
+            assert lock["version"] == zetch.__version__
+
+            # They should come out in alphabetical order:
+            assert [k for k in lock["files"]] == sorted(filenames)

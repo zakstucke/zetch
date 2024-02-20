@@ -411,6 +411,41 @@ def test_custom_ext_nice_user_invalid_errs(
             )
 
 
+def test_custom_ext_multi_render():
+    """Check custom extensions don't break when renderer runs multiple times (e.g. when cli var initials used).
+
+    This test was made for a real bug where extensions were lost after the first renderer usage.
+    """
+    with TmpFileManager() as manager:
+        ext = manager.tmpfile(
+            """import zetch
+@zetch.register_function
+def capitalize(s):
+    return s.capitalize()
+""",
+            suffix=".py",
+        )
+
+        check_single(
+            manager,
+            manager.create_cfg(
+                {
+                    "engine": {"custom_extensions": [str(ext)]},
+                    "context": {
+                        "cli": {
+                            "var_with_initial": {
+                                "commands": ["echo bar"],
+                                "initial": "init",
+                            }
+                        }
+                    },
+                }
+            ),
+            "{{ capitalize('foo') }} {{ var_with_initial }}",
+            "Foo bar",
+        )
+
+
 # DONE duplicate pkg names/sys paths
 # DONE conflict with ctx/in built filter/in built function
 # DONE check module and importing between files works
@@ -434,7 +469,8 @@ def test_custom_ext_nice_user_invalid_errs(
 # DONE allow input as string instead of file, that should print to stdout for read, write, del
 # DONE probably remove most engine config, maybe making top level if minimal enough, we don't want to mess with files and error early (so enforce no_undefined and keep_trailing_newline)
 # DONE fix schema - not sure why its not working
-# TODO: order everything in the lockfile to prevent diffs when nothings actually changed.
+# DONE: order everything in the lockfile to prevent diffs when nothings actually changed.
+# TODO: Before thinking about modes/light etc as other solutions to circular deps. I think by default the repeated rendering should be improved to be a first class citizen, then, every run, static+env rendered in first + initials when not existing in lockfile + others clis as empty strings + custom extensions as empty strings, only then a second render with cli commands, this could get rid of a bunch of circular dep problems natively.
 # TODO some sort of heavy/light/modes solution to caching values and not recomputing, maybe also for ban-defaults etc. maybe a modes top level config section, where a mode can override any config, set ban-defaults etc, need to think, but also need a way to only run certain post and pre in certain modes, need to think on best api.
 # TODO think about interop with jinja,cookiecutter,copier,etc
 # TODO decide and document optimal formatting, probably using scolvins and making sure it can working with custom extensions.

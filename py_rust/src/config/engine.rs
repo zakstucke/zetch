@@ -199,14 +199,13 @@ impl Engine {
                 Ok::<_, error_stack::Report<Zerr>>(())
             })?;
 
-            // Consume current contents of PY_USER_FUNCS and add to minijinja env:
-            let mut custom_funcs_global = PY_USER_FUNCS.lock();
-
-            // Extract all the loaded funcs from the global mutex to be passed to individual closures:
-            let custom_funcs = std::mem::take(&mut *custom_funcs_global);
-            *custom_funcs_global = HashMap::new();
-
+            // Extract a copy of the user funcs to add to minijinja env:
+            // Note copying as env might be created multiple times (e.g. initial)
+            // TODO: instead of this maybe reusing an env? In general need a bit of a refactor!
+            let custom_funcs = PY_USER_FUNCS.lock().clone();
             for (name, py_fn) in custom_funcs.into_iter() {
+                debug!("Registering custom function: '{}'", name);
+
                 // Confirm doesn't clash with config var:
                 if conf.context.contains_key(&name) {
                     return Err(zerr!(
