@@ -15,6 +15,8 @@ pub static LOCKFILE_NAME: &str = ".zetch.lock";
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct Contents {
     version: String,
+    // Keep ordering in lockfile static to reduce git conflicts and diff noise:
+    #[serde(serialize_with = "crate::utils::ordered_map_serializer")]
     files: HashMap<String, String>,
 }
 

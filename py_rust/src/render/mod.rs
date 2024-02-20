@@ -4,7 +4,6 @@ use bitbazaar::{
 };
 use colored::Colorize;
 use minijinja::context;
-use tracing::{debug, info, warn};
 
 mod args_validate;
 mod debug;
@@ -81,7 +80,7 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
             .change_context(Zerr::InternalError)?;
     }
 
-    info!(
+    println!(
         "{} {} template{} written, {} identical. Lockfile {}. {} elapsed.",
         "zetch:".bold(),
         written.len(),
