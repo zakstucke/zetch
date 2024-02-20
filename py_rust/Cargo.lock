@@ -2163,7 +2163,7 @@ dependencies = [
 
 [[package]]
 name = "zetch"
-version = "0.0.0"
+version = "0.0.11"
 dependencies = [
  "bitbazaar",
  "chrono",

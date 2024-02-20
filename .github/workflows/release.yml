@@ -7,13 +7,13 @@ on:
       - main
     inputs:
       py_rust_release:
-        description: "Rust-backed Python Release"
+        description: Rust-backed Python Release
         type: boolean
         required: false
         default: false
       py_rust_version:
-        description: "Rust-backed Python Version"
-        default: "0.0.0"
+        description: Rust-backed Python Version
+        default: 0.0.11
 
 jobs:
   commit_versions:
@@ -37,7 +37,7 @@ jobs:
 
 
 
-      # Formatting and checking uses nightly rather than stable:
+        # Formatting and checking uses nightly rather than stable:
       - uses: dtolnay/rust-toolchain@nightly
         if: ${{ inputs.py_rust_release }} || ${{ inputs.rust_release }}
         with:
@@ -60,7 +60,7 @@ jobs:
         uses: EndBug/add-and-commit@v9
         with:
           push: true
-          message: "chore: bump package versions for release"
+          message: 'chore: bump package versions for release'
           author_name: github-actions
           author_email: action@github.com
 
@@ -89,9 +89,9 @@ jobs:
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version: "3.12"
+          python-version: '3.12'
           cache: true
-          cache-dependency-path: 'docs/pdm.lock'
+          cache-dependency-path: docs/pdm.lock
 
       - name: Install dependencies
         run: |
@@ -147,7 +147,7 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.12"
+          python-version: '3.12'
       - run: pip install twine
 
       - name: Make sure release contents seem valid
@@ -157,15 +157,15 @@ jobs:
         run: twine upload py_rust/dist/*
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: "${{ secrets.PYPI_TOKEN }}"
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
       - name: Publish the release notes
         uses: release-drafter/release-drafter@v5
         with:
           publish: true
-          tag: "v${{ inputs.py_rust_version }}"
-          name: "v${{ inputs.py_rust_version }}"
+          tag: v${{ inputs.py_rust_version }}
+          name: v${{ inputs.py_rust_version }}
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
