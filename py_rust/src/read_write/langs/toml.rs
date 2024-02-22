@@ -148,7 +148,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
                 Inner::Item(item) => match item {
                     Item::Value(val) => handle_val!(val),
                     Item::ArrayOfTables(arr) => {
-                        let table = serde_to_table(
+                        let mut table = serde_to_table(
                             serde_json::from_str::<serde_json::Value>(json_str)
                                 .change_context(Zerr::InternalError)?,
                         )?;
@@ -159,7 +159,15 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
                             extracted.push(arr.get(0).unwrap().clone());
                             arr.remove(0);
                         }
+
+                        // Apply any old surrounding comments/decor to the replaced item:
+                        let old = extracted.get(index).ok_or_else(|| zerr_int!())?;
+                        *table.decor_mut() = old.decor().clone();
+
+                        // Replace:
                         extracted[index] = table;
+
+                        // Rebuild:
                         for tab in extracted {
                             arr.push(tab);
                         }
@@ -314,71 +322,61 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
 
     fn object_set_key(&self, key: &'r str, json_str: &'r str) -> Result<(), Zerr> {
         self.with_active(|active| {
-            let handle_val = |val: &mut Value| -> Result<(), Zerr> {
-                match val {
-                    toml_edit::Value::InlineTable(tab) => {
-                        // Maintain surrounding comments etc if replacing:
-                        let new_val = maintain_decor_val(
-                            serde_to_value(
-                                serde_json::from_str(json_str)
-                                    .change_context(Zerr::InternalError)?,
-                            )?,
-                            tab.get(key),
-                        );
+            let raw_new_val = serde_to_value(
+                serde_json::from_str(json_str).change_context(Zerr::InternalError)?,
+            )?;
 
-                        // Keys in tables also have decor, maintain that if replacing:
-                        let old_key_decor = tab.key_decor(key).cloned();
-                        tab.insert(key, new_val);
-                        if let Some(old_key_decor) = old_key_decor {
-                            if let Some(new_key_decor) = tab.key_decor_mut(key) {
-                                *new_key_decor = old_key_decor;
-                            }
-                        }
+            macro_rules! new_val {
+                ($table:expr) => {
+                    maintain_decor_val(raw_new_val, $table.get(key))
+                };
+            }
 
-                        Ok(())
-                    }
-                    _ => Err(zerr_int!()),
-                }
-            };
+            macro_rules! new_item {
+                ($table:expr) => {
+                    maintain_decor_item(Item::Value(raw_new_val), $table.get(key))
+                };
+            }
 
-            match &mut active.inner {
-                Inner::Value(val) => handle_val(val),
-                Inner::Table(tab) => {
-                    // Maintain surrounding comments etc if replacing:
-                    let new_item = maintain_decor_item(
-                        Item::Value(serde_to_value(
-                            serde_json::from_str(json_str).change_context(Zerr::InternalError)?,
-                        )?),
-                        tab.get(key),
-                    );
-
+            macro_rules! replace {
+                ($table:expr, $new_obj:expr) => {
                     // Keys in tables also have decor, maintain that if replacing:
-                    let old_key_decor = tab.key_decor(key).cloned();
-                    tab.insert(key, new_item);
+                    let old_key_decor = $table.key_decor(key).cloned();
+                    $table.insert(key, $new_obj);
                     if let Some(old_key_decor) = old_key_decor {
-                        if let Some(new_key_decor) = tab.key_decor_mut(key) {
+                        if let Some(new_key_decor) = $table.key_decor_mut(key) {
                             *new_key_decor = old_key_decor;
                         }
                     }
+                };
+            }
 
-                    Ok(())
+            match &mut active.inner {
+                Inner::Value(val) => match val {
+                    toml_edit::Value::InlineTable(tab) => {
+                        replace!(tab, new_val!(tab));
+                    }
+                    _ => return Err(zerr_int!()),
+                },
+                Inner::Table(tab) => {
+                    replace!(tab, new_item!(tab));
                 }
                 Inner::Item(item) => match item {
-                    Item::Value(val) => handle_val(val),
+                    Item::Value(val) => match val {
+                        toml_edit::Value::InlineTable(tab) => {
+                            replace!(tab, new_val!(tab));
+                        }
+                        _ => return Err(zerr_int!()),
+                    },
                     Item::Table(tab) => {
-                        tab.insert(
-                            key,
-                            Item::Value(serde_to_value(
-                                serde_json::from_str(json_str)
-                                    .change_context(Zerr::InternalError)?,
-                            )?),
-                        );
-                        Ok(())
+                        replace!(tab, new_item!(tab));
                     }
-                    Item::None => Err(zerr_int!()),
-                    Item::ArrayOfTables(_) => Err(zerr_int!()),
+                    Item::None => return Err(zerr_int!()),
+                    Item::ArrayOfTables(_) => return Err(zerr_int!()),
                 },
             }
+
+            Ok(())
         })
     }
 
