@@ -108,7 +108,7 @@ from .test_data.utils import tfile
                 ),
             ]
         ],
-        # Complex file should maintain full structure on edit (including comments):
+        # Complex file edit should maintain full structure on edit (including comments):
         *[
             (f"7_{ft}", "NEW_TYPE", ["phoneNumbers.1.type"], f"foo.{ft}", cont, out)
             for ft, cont, out in [
@@ -162,6 +162,68 @@ from .test_data.utils import tfile
                     "toml",
                     'ree = [{foo = [1, 2, 3]}, "other"]',
                     'ree = [{foo = [1, 2, 3]}, "other"]',
+                ),
+            ]
+        ],
+        # Comments maintained on object key replace:
+        *[
+            (f"11_{ft}", "NEW", ["ree.foo"], f"foo.{ft}", cont, out)
+            for ft, cont, out in [
+                (
+                    "json",
+                    '{"ree": {\n// Above comment\n"foo": /* Crazy loc! */ "OLD" // Side comment\n// Below comment\n}}',
+                    # The /**/ one gets ejected but definitely still fine.
+                    '{\n  "ree": {\n    // Above comment\n    /* Crazy loc! */\n    "foo": "NEW", // Side comment\n    // Below comment\n  }\n}\n',
+                ),
+                (
+                    "yaml",
+                    "ree:\n  # Above comment\n  foo: OLD # Side comment\n  # Below comment",
+                    "ree:\n  # Above comment\n  foo: NEW # Side comment\n  # Below comment\n",
+                ),
+                # Toml direct below table header:
+                (
+                    "toml",
+                    '[ree]\n# Above comment\nfoo = "OLD" # Side comment\n# Below comment',
+                    '[ree]\n# Above comment\nfoo = "NEW" # Side comment\n# Below comment\n',
+                ),
+                # Toml underneath another key:
+                (
+                    "toml",
+                    '[ree]\n# Other above\nrah = "ROO" # Other side\n# Above comment\nfoo = "OLD" # Side comment\n# Below comment',
+                    '[ree]\n# Other above\nrah = "ROO" # Other side\n# Above comment\nfoo = "NEW" # Side comment\n# Below comment\n',
+                ),
+            ]
+        ],
+        # Comments maintained on array key replace:
+        *[
+            (f"12_{ft}", "NEW", ["ree.foo.1"], f"foo.{ft}", cont, out)
+            for ft, cont, out in [
+                (
+                    "json",
+                    '{"ree": {"foo": ["a",\n// Above comment\n"OLD", // Side comment\n// Below comment\n "c"]}}',
+                    '{\n  "ree": {\n    "foo": [\n      "a",\n      // Above comment\n      "NEW", // Side comment\n      // Below comment\n      "c"\n    ]\n  }\n}\n',
+                ),
+                (
+                    "yaml",
+                    "ree:\n  foo:\n  - a\n  # Above comment\n  - OLD # Side comment\n  # Below comment\n  - c",
+                    "ree:\n  foo:\n  - a\n  # Above comment\n  - NEW # Side comment\n  # Below comment\n  - c",
+                ),
+                # Toml inline array:
+                (
+                    "toml",
+                    'ree = {foo = [\n"a", # Above comment\n"OLD", # Side comment\n# Below comment\n "c"]}',
+                    'ree = {foo = [\n"a", # Above comment\n"NEW", # Side comment\n# Below comment\n "c"]}',
+                ),
+            ]
+        ],
+        # Toml comments maintained on array of tables replace (separate to above as needs object not simple string):
+        *[
+            (f"13_{ft}", '{"baz": "NEW"}', ["ree.foo.1", "--coerce=json"], f"foo.{ft}", cont, out)
+            for ft, cont, out in [
+                (
+                    "toml",
+                    '[[ree.foo]]\nbaz = "bar"\n\n# Above comment\n[[ree.foo]] # Side comment on header\nbaz = "OLD"\n# Below comment\n\n[[ree.foo]]\nbaz = "boo"',
+                    '[[ree.foo]]\nbaz = "bar"\n\n# Above comment\n[[ree.foo]] # Side comment on header\nbaz = "NEW"\n# Below comment\n\n[[ree.foo]]\nbaz = "boo"',
                 ),
             ]
         ],

@@ -88,7 +88,7 @@ impl CtxCliVar {
             }) {
                 Ok(cmd_out) => Ok(cmd_out),
                 Err(e) => match e.current_context() {
-                    BashErr::InternalError => Err(e.change_context(Zerr::InternalError)),
+                    BashErr::InternalError(_) => Err(e.change_context(Zerr::InternalError)),
                     _ => Err(e.change_context(Zerr::UserCommandError)),
                 },
             }?;
