@@ -172,10 +172,11 @@ pub fn load(
                 let config_dir_clone = config_dir.clone();
                 handles.push(std::thread::spawn(
                     move || -> Result<(String, serde_json::Value), Zerr> {
-                        let value = value
-                            .consume(&config_dir_clone)
-                            .change_context(Zerr::ContextLoadError)
-                            .attach_printable_lazy(|| format!("Ctx cli var: '{key}'"))?;
+                        let value = timeit!(format!("Cli var processing: '{}'", &key).as_str(), {
+                            value.consume(&config_dir_clone)
+                        })
+                        .change_context(Zerr::ContextLoadError)
+                        .attach_printable_lazy(|| format!("Ctx cli var: '{key}'"))?;
                         Ok((key, value))
                     },
                 ));

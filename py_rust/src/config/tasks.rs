@@ -71,15 +71,7 @@ impl Task {
                 _ => Err(e.change_context(Zerr::UserCommandError)),
             },
         }?;
-
-        if cmd_out.code != 0 {
-            return Err(zerr!(
-                Zerr::UserCommandError,
-                "Returned non zero exit code: {}. Std output: {}",
-                cmd_out.code,
-                cmd_out.std_all()
-            ));
-        }
+        cmd_out.throw_on_bad_code(Zerr::UserCommandError)?;
 
         Ok(())
     }

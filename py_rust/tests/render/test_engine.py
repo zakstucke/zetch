@@ -164,7 +164,7 @@ def test_engine_config(template_src: str, engine_config: Engine, expected: str):
         (
             "Hello, {{ var }}! My name is {{ name }}!",
             {"context": {"static": {"var": {"value": "World"}}}},
-            "Failed to render template: 'undefined value",
+            "undefined value",
             True,
         ),
     ],

@@ -143,11 +143,33 @@ fn render_inner(
             let compiled = match tmpl.render(context! {}) {
                 Ok(compiled) => compiled,
                 Err(e) => {
-                    return Err(zerr!(
-                        Zerr::RenderTemplateError,
-                        "Failed to render template: '{}'",
-                        e
-                    ))
+                    let mut out_e = zerr!(Zerr::RenderTemplateError, "Failed to render template.")
+                        .attach_printable(format!("{}", e));
+
+                    // Rendering failed, important here to give a really nice error as common user error.
+                    // So print the lines around the error if possible:
+                    if let Some(err_line_no) = e.line() {
+                        let source_code = std::fs::read_to_string(&template.path)
+                            .change_context(Zerr::InternalError)?;
+                        let lines = source_code.lines().collect::<Vec<_>>();
+                        let start_line_no = if err_line_no > 3 { err_line_no - 3 } else { 1 };
+                        let end_line_no = (err_line_no + 3).min(lines.len());
+                        let mut s = String::new();
+                        for line_no in start_line_no..(end_line_no + 1) {
+                            let line = lines[line_no - 1];
+                            if line_no == err_line_no {
+                                s.push_str(&format!(
+                                    "{}",
+                                    format!("{}| {} <-- ERR\n", line_no, line).red().bold()
+                                ));
+                            } else {
+                                s.push_str(&format!("{}: {}\n", line_no, line));
+                            }
+                        }
+                        out_e = out_e.attach_printable(s);
+                    }
+
+                    return Err(out_e);
                 }
             };
             let is_new = lockfile.add_template(&template, compiled)?;
