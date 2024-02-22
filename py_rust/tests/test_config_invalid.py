@@ -294,7 +294,7 @@ def test_failing_cli_errs():
 
     # Should error when script returns nothing (implicit None)
     with TmpFileManager() as manager:
-        with pytest.raises(ValueError, match="Implicit None. Final cli script returned nothing."):
+        with pytest.raises(ValueError, match="Implicit None. Final cli command returned nothing."):
             tmpfile = manager.tmpfile("", suffix=".txt")
             cli.render(
                 manager.root_dir,

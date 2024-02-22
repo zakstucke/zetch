@@ -1,11 +1,7 @@
 use std::{collections::HashMap, path::Path};
 
-use bitbazaar::{
-    cli::{Bash, BashErr, CmdOut},
-    timeit,
-};
+use bitbazaar::cli::{Bash, BashErr};
 use serde::{Deserialize, Serialize};
-use tracing::debug;
 
 use super::{engine::Engine, src_read::read_and_auto_update, tasks::Tasks};
 use crate::{
@@ -80,49 +76,30 @@ impl CtxCliVar {
     pub fn consume(self, config_dir: &Path) -> Result<serde_json::Value, Zerr> {
         let commands = self.commands;
 
-        let runner = |command: &str| -> Result<CmdOut, Zerr> {
-            debug!("Running command: {}", command);
-
-            let cmd_out = match timeit!(format!("Cmd: {}", command).as_str(), {
-                Bash::new().chdir(config_dir).cmd(command).run()
-            }) {
-                Ok(cmd_out) => Ok(cmd_out),
-                Err(e) => match e.current_context() {
-                    BashErr::InternalError(_) => Err(e.change_context(Zerr::InternalError)),
-                    _ => Err(e.change_context(Zerr::UserCommandError)),
-                },
-            }?;
-
-            if cmd_out.code != 0 {
-                return Err(zerr!(
-                    Zerr::UserCommandError,
-                    "Returned non zero exit code: {}. Std output: {}",
-                    cmd_out.code,
-                    cmd_out.std_all()
-                ));
-            }
-
-            Ok(cmd_out)
-        };
-
-        // Run each command before the last:
-        for command in commands[..commands.len() - 1].iter() {
-            runner(command).attach_printable_lazy(|| format!("Command: '{command}'"))?;
+        let mut bash = Bash::new().chdir(config_dir);
+        for command in commands.iter() {
+            bash = bash.cmd(command);
         }
+        let cmd_out = match bash.run() {
+            Ok(cmd_out) => Ok(cmd_out),
+            Err(e) => match e.current_context() {
+                BashErr::InternalError(_) => Err(e.change_context(Zerr::InternalError)),
+                _ => Err(e.change_context(Zerr::UserCommandError)),
+            },
+        }?;
+        cmd_out.throw_on_bad_code(Zerr::UserCommandError)?;
 
-        // Run the last and store its stdout as the value:
-        let final_cmd = &commands[commands.len() - 1];
-        let cmd_out =
-            runner(final_cmd).attach_printable_lazy(|| format!("Command: '{final_cmd}'"))?;
-        if cmd_out.stdout.trim().is_empty() {
+        // Prevent empty output:
+        let last_cmd_out = cmd_out.last_stdout();
+        if last_cmd_out.trim().is_empty() {
             return Err(zerr!(
                 Zerr::UserCommandError,
-                "Implicit None. Final cli script returned nothing.",
+                "Implicit None. Final cli command returned nothing.",
             )
-            .attach_printable(format!("Command: '{final_cmd}'")));
+            .attach_printable(cmd_out.fmt_attempted_commands()));
         }
-        let value = serde_json::Value::String(cmd_out.stdout);
 
+        let value = serde_json::Value::String(last_cmd_out);
         coerce(value, &self.coerce)
     }
 }
