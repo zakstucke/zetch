@@ -14,11 +14,11 @@ pub enum Coerce {
     Bool,
 }
 
-pub fn coerce(value: Value, c_type: &Option<Coerce>) -> Result<Value, Zerr> {
+pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Zerr> {
     // Always strip whitespace from string inputs:
     let value = match value {
         Value::String(s) => Value::String(s.trim().to_string()),
-        _ => value,
+        _ => value.clone(),
     };
 
     if let Some(c_type) = c_type {

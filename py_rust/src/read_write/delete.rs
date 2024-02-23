@@ -1,4 +1,6 @@
-use super::{filetype::FileType, langs, raise_invalid_path, source::Source, traverser::TravNode};
+use super::{
+    filetype::FileType, langs, source::Source, traverser::TravNode, utils::raise_invalid_path,
+};
 use crate::{args::DelCommand, prelude::*};
 
 /// Handle deletions.

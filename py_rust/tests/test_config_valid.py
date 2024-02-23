@@ -21,7 +21,7 @@ def cfg_str(config: InputConfig) -> str:
     [
         (
             {},
-            "context",
+            "ctx",
             cfg_str(
                 {
                     "context": {
@@ -37,7 +37,7 @@ def cfg_str(config: InputConfig) -> str:
         ),
         (
             {},
-            "context",
+            "ctx",
             cfg_str(
                 {
                     "context": {
@@ -56,39 +56,39 @@ def cfg_str(config: InputConfig) -> str:
         ),
         (
             {},
-            "context",
+            "ctx",
             cfg_str({"context": {"static": {"FOO": {"value": "Hello, World!"}}}}),
             {"FOO": "Hello, World!"},
         ),
         (
             {"FOO": "abc"},
-            "context",
+            "ctx",
             cfg_str({"context": {"env": {"FOO": {}}}}),
             {"FOO": "abc"},
         ),
         (
             {"BAR": "def"},
-            "context",
+            "ctx",
             cfg_str({"context": {"env": {"FOO": {"env_name": "BAR"}}}}),
             {"FOO": "def"},
         ),
         # Should still use env var if available despite default given:
         (
             {"FOO": "abc"},
-            "context",
+            "ctx",
             cfg_str({"context": {"env": {"FOO": {"default": True}}}}),
             {"FOO": "abc"},
         ),
         # Should only use default when no env var:
         (
             {},
-            "context",
+            "ctx",
             cfg_str({"context": {"env": {"FOO": {"env_name": "BAR", "default": True}}}}),
             {"FOO": True},
         ),
         (
             {},
-            "context",
+            "ctx",
             cfg_str(
                 {
                     "context": {
@@ -214,12 +214,14 @@ def test_read_config(
 
             final_expected = expected(manager.root_dir) if callable(expected) else expected
 
-            assert (
-                cli.render(manager.root_dir, manager.tmpfile(cfg_str, suffix=".toml"))["debug"][
-                    "config"
-                ][config_var]
-                == final_expected
+            debug = cli.render(manager.root_dir, manager.tmpfile(cfg_str, suffix=".toml"))["debug"]
+            # Some things moved to "conf" that used to be on state:
+            out = (
+                debug["state"][config_var]
+                if config_var in debug["state"]
+                else debug["state"]["conf"][config_var]
             )
+            assert out == final_expected
 
 
 def test_parallelized_context_cli_commands():
@@ -297,7 +299,7 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                 manager.create_cfg(
                     {"context": {"static": {"FOO": {"value": input_val, "coerce": as_type}}}}
                 ),
-            )["debug"]["config"]["context"]["FOO"]
+            )["debug"]["state"]["ctx"]["FOO"]
             == expected
         )
 
@@ -322,7 +324,7 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                         }
                     }
                 ),
-            )["debug"]["config"]["context"]["FOO"]
+            )["debug"]["state"]["ctx"]["FOO"]
             == expected
         )
 
@@ -338,6 +340,6 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                     manager.create_cfg(
                         {"context": {"env": {"FOO": {"env_name": "FOO", "coerce": as_type}}}},
                     ),
-                )["debug"]["config"]["context"]["FOO"]
+                )["debug"]["state"]["ctx"]["FOO"]
                 == expected
             )

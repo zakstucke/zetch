@@ -5,9 +5,9 @@ use regex::Regex;
 use tracing::debug;
 
 use super::lockfile::LOCKFILE_NAME;
-use crate::{config::Config, prelude::*};
+use crate::{prelude::*, state::State};
 
-pub fn create(root: &Path, conf: &Config) -> Result<WalkBuilder, Zerr> {
+pub fn create(root: &Path, state: &State) -> Result<WalkBuilder, Zerr> {
     let mut builder = WalkBuilder::new(root);
     builder.git_exclude(false); // Don't auto read .git/info/exclude
     builder.git_global(false); // Don't auto use a global .gitignore file
@@ -16,7 +16,7 @@ pub fn create(root: &Path, conf: &Config) -> Result<WalkBuilder, Zerr> {
     builder.require_git(false); // Works better when not in a git repo
     builder.hidden(false); // Doesn't auto ignore hidden files
 
-    for ignore_file in conf.ignore_files.iter() {
+    for ignore_file in state.conf.ignore_files.iter() {
         builder.add_ignore(ignore_file);
     }
 
@@ -26,12 +26,12 @@ pub fn create(root: &Path, conf: &Config) -> Result<WalkBuilder, Zerr> {
     ];
 
     // If the config is inside the root, add it to the excludes:
-    if let Some(rel_config) = config_path_relative_to_root(root, &conf.final_config_path)? {
+    if let Some(rel_config) = config_path_relative_to_root(root, &state.final_config_path)? {
         all_excludes.push(rel_config.display().to_string());
     }
 
     // Add in config supplied excludes:
-    all_excludes.extend(conf.exclude.iter().map(|s| s.to_string()));
+    all_excludes.extend(state.conf.exclude.iter().map(|s| s.to_string()));
 
     let mut overrider: OverrideBuilder = OverrideBuilder::new(root);
     for exclude in all_excludes.iter() {
@@ -198,11 +198,11 @@ fn rewrite_template_matcher(
 /// Used by the replace-matcher command, otherwise used internally in render().
 pub fn get_template_matcher_rewrite_mapping(
     root: &Path,
-    conf: &Config,
+    state: &State,
     old_matcher: &str,
     new_matcher: &str,
 ) -> Result<Vec<(PathBuf, PathBuf)>, Zerr> {
-    let templates = find_templates(root, create(root, conf)?, &[old_matcher.to_string()])?;
+    let templates = find_templates(root, create(root, state)?, &[old_matcher.to_string()])?;
 
     let middle_regex = get_middle_regex(old_matcher);
     let end_regex = get_end_regex(old_matcher);

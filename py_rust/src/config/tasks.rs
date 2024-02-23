@@ -6,11 +6,13 @@ use bitbazaar::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{
-    parent_config::{store_parent_config, CACHED_CONFIG_ENV_VAR},
-    Config,
+use crate::{
+    prelude::*,
+    state::{
+        parent_state::{store_parent_state, CACHED_STATE_ENV_VAR},
+        State,
+    },
 };
-use crate::prelude::*;
 
 static IN_TASK_ENV_VAR: &str = "ZETCH_IN_TASK";
 
@@ -53,7 +55,7 @@ impl Task {
         bash = bash.env(IN_TASK_ENV_VAR, "1");
         if let Some(cached_config_loc) = cached_config_loc {
             bash = bash.env(
-                CACHED_CONFIG_ENV_VAR,
+                CACHED_STATE_ENV_VAR,
                 cached_config_loc.display().to_string(),
             );
         }
@@ -94,9 +96,9 @@ impl Tasks {
         Ok(())
     }
 
-    pub fn run_post(&self, conf: &Config) -> Result<(), Zerr> {
+    pub fn run_post(&self, conf: &State) -> Result<(), Zerr> {
         // Will cache the config so subcommands using it will work.
-        let path_buf = store_parent_config(conf)?;
+        let path_buf = store_parent_state(conf)?;
         let path = path_buf.as_path();
 
         for task in self.post.iter() {
