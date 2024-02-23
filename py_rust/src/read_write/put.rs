@@ -1,4 +1,6 @@
-use super::{filetype::FileType, langs, raise_invalid_path, source::Source, traverser::TravNode};
+use super::{
+    filetype::FileType, langs, source::Source, traverser::TravNode, utils::raise_invalid_path,
+};
 use crate::{args::PutCommand, coerce::coerce, prelude::*};
 
 static EMPTY_OBJ: &str = "{}";
@@ -14,7 +16,7 @@ pub fn handle_put(
     source: Source,
 ) -> Result<(), Zerr> {
     let mut manager = langs::Manager::new(ft, &file_contents)?;
-    let to_write_val = coerce(serde_json::Value::String(fargs.put.clone()), &fargs.coerce)?;
+    let to_write_val = coerce(&serde_json::Value::String(fargs.put.clone()), &fargs.coerce)?;
     let to_write_json = serde_json::to_string(&to_write_val).change_context(Zerr::InternalError)?;
 
     let mut modified = false;

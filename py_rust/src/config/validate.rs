@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use once_cell::sync::Lazy;
 use regex::Regex;
 
-use super::raw_conf::RawConfig;
+use super::conf::Config;
 use crate::prelude::*;
 
 // Include the schema in the binary to use at runtime:
@@ -33,7 +33,7 @@ pub fn pre_validate(value: &serde_json::Value) -> Result<(), Zerr> {
 }
 
 /// Extra validation & cleaning to do on the created config object.
-pub fn post_validate(conf: &mut RawConfig, config_path: &Path) -> Result<(), Zerr> {
+pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Zerr> {
     // Make sure at least one matcher has been provided:
     if conf.matchers.is_empty() {
         return Err(zerr!(

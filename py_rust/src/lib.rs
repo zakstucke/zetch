@@ -1,9 +1,6 @@
 #![warn(clippy::disallowed_types)]
 
-use std::ops::Deref;
-
 use colored::Colorize;
-use config::PY_CONTEXT;
 use pyo3::{exceptions::PyValueError, prelude::*};
 use pythonize::depythonize;
 use render::hash_contents;
@@ -12,6 +9,7 @@ mod arg_matcher;
 mod args;
 mod coerce;
 mod config;
+mod custom_exts;
 mod error;
 mod init;
 mod prelude;
@@ -19,6 +17,7 @@ mod read_write;
 mod render;
 mod replace_matcher;
 mod run;
+mod state;
 mod utils;
 mod var;
 
@@ -50,29 +49,6 @@ pub fn cli() -> i32 {
     }
 }
 
-#[pyfunction]
-#[pyo3(name = "register_function")]
-pub fn py_register_function(py: Python, py_fn: &PyAny) -> PyResult<()> {
-    match config::register_py_func(py, py_fn) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(PyValueError::new_err(format!("{:?}", e))),
-    }
-}
-
-/// Get the current context as a Python dictionary to be used in custom user functions.
-#[pyfunction]
-#[pyo3(name = "context")]
-pub fn py_context(py: Python) -> PyResult<PyObject> {
-    let py_ctx = PY_CONTEXT.lock();
-    if let Some(py_ctx) = py_ctx.deref() {
-        Ok(py_ctx.clone_ref(py))
-    } else {
-        Err(PyValueError::new_err(
-            "Context not registered. This should only be called by custom user extensions.",
-        ))
-    }
-}
-
 /// Create a TOML string from a Python object, used by tests.
 #[pyfunction]
 #[pyo3(name = "_toml_create")]
@@ -98,9 +74,11 @@ pub fn py_hash_contents(contents: &str) -> PyResult<String> {
 fn root_module(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(cli, m)?)?;
 
-    m.add_function(wrap_pyfunction!(py_register_function, m)?)?;
-
-    m.add_function(wrap_pyfunction!(py_context, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        custom_exts::py_interface::py_register_function,
+        m
+    )?)?;
+    m.add_function(wrap_pyfunction!(custom_exts::py_interface::py_context, m)?)?;
 
     m.add_function(wrap_pyfunction!(py_toml_create, m)?)?;
 

@@ -1,17 +1,17 @@
 use std::path::PathBuf;
 
-use crate::{args::ReplaceMatcherCommand, prelude::*};
+use crate::{args::ReplaceMatcherCommand, prelude::*, state::State};
 
 /// Search the current directory for all template files (using the old matcher), replace the filename with the new matcher.
 ///
 /// Will show all files that will be renamed and prompt for confirmation before renaming.
 pub fn replace(args: &crate::args::Args, replace_args: &ReplaceMatcherCommand) -> Result<(), Zerr> {
     let root = PathBuf::from(".");
-    let conf = crate::config::load(args, None, None, false)?;
+    let state = State::new(args)?;
 
     let mapping = crate::render::get_template_matcher_rewrite_mapping(
         &root,
-        &conf,
+        &state,
         &replace_args.old_matcher,
         &replace_args.new_matcher,
     )?;

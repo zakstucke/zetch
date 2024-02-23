@@ -1,4 +1,4 @@
-use super::{filetype::FileType, langs, raise_invalid_path, traverser::TravNode};
+use super::{filetype::FileType, langs, traverser::TravNode, utils::raise_invalid_path};
 use crate::{
     args::{ReadCommand, ReadOutputFormat},
     prelude::*,

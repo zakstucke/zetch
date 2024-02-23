@@ -1,0 +1,199 @@
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    ops::Deref,
+    path::Path,
+};
+
+use once_cell::sync::Lazy;
+use parking_lot::Mutex;
+use pyo3::{
+    exceptions::PyValueError,
+    prelude::*,
+    types::{PyDict, PyList, PyTuple},
+};
+use pythonize::pythonize;
+
+use crate::{prelude::*, state::State};
+
+static PY_CONTEXT: Lazy<Mutex<Option<PyObject>>> = Lazy::new(Mutex::default);
+static PY_USER_FUNCS: Lazy<Mutex<HashMap<String, PyObject>>> = Lazy::new(Mutex::default);
+
+#[pyfunction]
+#[pyo3(name = "register_function")]
+pub fn py_register_function(py: Python, py_fn: &PyAny) -> PyResult<()> {
+    match register_py_func(py, py_fn) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(PyValueError::new_err(format!("{:?}", e))),
+    }
+}
+
+/// Get the current context as a Python dictionary to be used in custom user functions.
+#[pyfunction]
+#[pyo3(name = "context")]
+pub fn py_context(py: Python) -> PyResult<PyObject> {
+    let py_ctx = PY_CONTEXT.lock();
+    if let Some(py_ctx) = py_ctx.deref() {
+        Ok(py_ctx.clone_ref(py))
+    } else {
+        Err(PyValueError::new_err(
+            "Context not registered. This should only be called by custom user extensions.",
+        ))
+    }
+}
+
+pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String, PyObject>, Zerr> {
+    // Don't touch python if unneeded:
+    if exts.is_empty() {
+        return Ok(HashMap::new());
+    }
+
+    Python::with_gil(|py| {
+        // Pythonize a copy of the context and add to the global PY_CONTEXT so its usable from zetch.context():
+        let mut py_ctx = PY_CONTEXT.lock();
+        *py_ctx = Some(pythonize(py, &state.ctx).change_context(Zerr::InternalError)?);
+
+        let syspath: &PyList = py
+            .import("sys")
+            .change_context(Zerr::InternalError)?
+            .getattr("path")
+            .change_context(Zerr::InternalError)?
+            .downcast()
+            .map_err(|e| {
+                zerr!(
+                    Zerr::InternalError,
+                    "Failed to get sys.path whilst importing custom extension: '{}'",
+                    e
+                )
+            })?;
+        for extension_path in state.conf.engine.custom_extensions.iter() {
+            let result: Result<(), Zerr> = (|| {
+                // Get the parent dir of the file/module:
+                let path = Path::new(extension_path);
+                let parent = path.parent().ok_or_else(|| {
+                    zerr!(
+                        Zerr::InternalError,
+                        "Failed to get parent of path '{}'",
+                        extension_path
+                    )
+                })?;
+                let name = path
+                    .file_stem()
+                    .ok_or_else(|| {
+                        zerr!(
+                            Zerr::InternalError,
+                            "Failed to get file stem of path '{}'",
+                            extension_path
+                        )
+                    })?
+                    .to_str()
+                    .ok_or_else(|| {
+                        zerr!(
+                            Zerr::InternalError,
+                            "Failed to convert file stem to string of path '{}'",
+                            extension_path
+                        )
+                    })?;
+                syspath
+                    .insert(0, parent)
+                    .change_context(Zerr::InternalError)?;
+                py.import(name).change_context(Zerr::InternalError)?;
+                Ok(())
+            })();
+
+            if result.is_err() {
+                return result.attach_printable_lazy(|| {
+                    format!("Failed to import custom extension '{}'.", extension_path)
+                });
+            }
+        }
+
+        Ok::<_, error_stack::Report<Zerr>>(())
+    })?;
+
+    // Extract a copy of the user funcs to add to minijinja env:
+    // Note copying as env might be created multiple times (e.g. initial)
+    // TODO: instead of this maybe reusing an env? In general need a bit of a refactor!
+    Ok(PY_USER_FUNCS.lock().clone())
+}
+
+pub fn mini_values_to_py_params(
+    py: Python<'_>,
+    values: minijinja::value::Rest<minijinja::Value>,
+) -> Result<(&PyTuple, Option<&PyDict>), Zerr> {
+    // Loop over the values and extract the args and kwargs given to the func:
+    let mut args = vec![];
+    let mut kwargs: HashMap<String, minijinja::Value> = HashMap::new();
+    for value in values.iter() {
+        if value.is_kwargs() {
+            for key in value.try_iter().change_context(Zerr::InternalError)? {
+                let kwarg_val = value.get_item(&key).change_context(Zerr::InternalError)?;
+                kwargs.insert(key.into(), kwarg_val);
+            }
+        } else {
+            args.push(value);
+        }
+    }
+
+    let py_args = PyTuple::new(
+        py,
+        args.into_iter()
+            .map(|v| {
+                let py_val = pythonize(py, v).change_context(Zerr::InternalError)?;
+                Ok(py_val)
+            })
+            .collect::<Result<Vec<_>, Zerr>>()?,
+    );
+
+    let py_kwargs = match kwargs.is_empty() {
+        true => Ok::<_, Zerr>(None),
+        false => {
+            let dic = PyDict::new(py);
+            for (key, value) in kwargs {
+                let py_val = pythonize(py, &value).change_context(Zerr::InternalError)?;
+                dic.set_item(key, py_val)
+                    .change_context(Zerr::InternalError)?;
+            }
+            Ok(Some(dic))
+        }
+    }?;
+
+    Ok((py_args, py_kwargs))
+}
+
+fn register_py_func(py: Python, py_fn: &PyAny) -> Result<(), Zerr> {
+    let (module_name, fn_name) = (|| -> core::result::Result<_, PyErr> {
+        let module_name = py_fn.getattr("__module__")?.extract::<String>()?;
+        let fn_name = py_fn.getattr("__name__")?.extract::<String>()?;
+        Ok((module_name, fn_name))
+    })()
+    .change_context(Zerr::InternalError)?;
+
+    debug!("Registering custom function: '{}.{}'", module_name, fn_name);
+
+    // Confirm it's a function:
+    if !py_fn.is_callable() {
+        return Err(zerr!(
+            Zerr::CustomPyFunctionError,
+            "Failed to register custom function: '{}.{}' as it's not a function",
+            module_name,
+            fn_name
+        ));
+    }
+
+    let mut func_store = PY_USER_FUNCS.lock();
+
+    // Raise error if something with the same name already registered:
+    if let Entry::Vacant(e) = func_store.entry(fn_name.clone()) {
+        e.insert(py_fn.to_object(py));
+    } else {
+        return Err(zerr!(
+            Zerr::CustomPyFunctionError,
+            "Failed to register custom function: '{}.{}' as '{}' is already registered.",
+            module_name,
+            fn_name,
+            fn_name
+        ));
+    }
+
+    Ok(())
+}
