@@ -9,7 +9,7 @@ pub fn read_var(args: &crate::args::Args, read: &VarCommand) -> Result<(), Zerr>
     let mut state = State::new(args)?;
 
     // Only need to load the specific target:
-    let target = state.load_var(read.var.as_str(), false, false)?;
+    let target = state.load_var(read.var.as_str(), false)?;
 
     // Handle different output formats:
     match read.output {

@@ -175,7 +175,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "639f2d11715601ccc0ba383a11209d87f89361736242b3ebf0182c7299a3d682"
 dependencies = [
  "chrono",
- "clap",
  "colored",
  "comfy-table",
  "conch-parser",

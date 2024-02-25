@@ -23,43 +23,26 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
         self::lockfile::Lockfile::load(render_args.root.clone(), render_args.force)
     });
 
+    // TODO double prints what's that about
+
     let mut state = State::new(args)?;
+    state.load_all_vars()?;
+    debug!("State: {:#?}", state);
 
-    // If newly created, should use cli initials if any have them:
-    let use_cli_initials = lockfile.newly_created
-        && state
-            .conf
-            .context
-            .cli
-            .iter()
-            .any(|(_, v)| v.initial.is_some());
-    state.load_all_vars(Some(render_args), use_cli_initials)?;
+    let (written, identical) = render_inner(&state, render_args, &mut lockfile)?;
 
-    // Need to run twice and rebuild config with real cli vars if initials used in the first state build:
-    let (written, identical) = if use_cli_initials {
-        warn!("Lockfile newly created/force updated and some cli vars have initials, will double render and use initials first time round.");
-        // Conf from second as that has the real cli vars, template info from the first as the second will be inaccurate due to the first having run.
-        let (first_written, first_identical) = render_inner(&state, render_args, &mut lockfile)?;
-
-        // Reload with real cli vars:
-        state.load_all_vars(Some(render_args), false)?;
-
-        // Re-render:
-        render_inner(&state, render_args, &mut lockfile)?;
-        (first_written, first_identical)
-    } else {
-        render_inner(&state, render_args, &mut lockfile)?
-    };
-
-    // Run post-tasks:
-    state.conf.tasks.run_post(&state)?;
+    // Run post-tasks only if not light/superlight:
+    if !state.light {
+        state.conf.tasks.run_post(&state)?;
+    }
 
     timeit!("Syncing lockfile", { lockfile.sync() })?;
 
     // Write only when hidden cli flag --debug is set, to allow testing internals from python without having to setup custom interfaces:
     if render_args.debug {
         let debug = debug::Debug {
-            state: state.clone(),
+            conf: state.conf.clone(),
+            ctx: state.ctx.clone(),
             written: written
                 .iter()
                 .map(|t| t.out_path.display().to_string())
@@ -85,7 +68,11 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
             .change_context(Zerr::InternalError)?;
     }
 
-    let num_tasks = state.conf.tasks.pre.len() + state.conf.tasks.post.len();
+    let num_tasks = if state.light {
+        0
+    } else {
+        state.conf.tasks.pre.len() + state.conf.tasks.post.len()
+    };
     println!(
         "{} {} template{} written, {} identical.{} Lockfile {}. {} elapsed.",
         "zetch:".bold(),
