@@ -37,7 +37,7 @@ pub fn get_version_info() -> String {
     }
 }
 
-#[derive(Debug, Parser)]
+#[derive(Clone, Debug, Parser)]
 #[command(
     author,
     name = "zetch",
@@ -49,7 +49,7 @@ pub struct Args {
     #[command(subcommand)]
     pub command: Command,
     #[clap(flatten)]
-    pub log_level_args: bitbazaar::log::ClapLogLevelArgs,
+    pub log_level_args: ClapLogLevelArgs,
     /// The config file to use. Note if render command, relative and not found from working directory, will search entered root directory.
     #[arg(
         short,
@@ -61,7 +61,7 @@ pub struct Args {
     pub config: PathBuf,
 }
 
-#[derive(Debug, clap::Subcommand)]
+#[derive(Clone, Debug, clap::Subcommand)]
 pub enum Command {
     /// Render all templates found whilst traversing the given root (default).
     Render(RenderCommand),
@@ -95,9 +95,19 @@ pub struct RenderCommand {
     /// The target directory to search and render.
     #[clap(default_value = ".")]
     pub root: PathBuf,
+
+    /// No tasks will be run, cli vars will be ignored and treated as empty strings if "light" defaults not specified.
+    #[arg(short, long, default_value = "false")]
+    pub light: bool,
+
+    /// Same as light, but user defined custom extensions are also treated as empty strings, pure rust speeds!
+    #[arg(long, default_value = "false")]
+    pub superlight: bool,
+
     /// Force write all rendered files, ignore existing lockfile.
     #[arg(short, long, default_value = "false")]
     pub force: bool,
+
     /// Comma separated list of env ctx vars to ignore defaults for and raise if not in env. E.g. --ban-defaults FOO,BAR...
     ///
     /// If no vars are provided, all defaults will be ignored.
@@ -217,4 +227,35 @@ pub struct InitCommand {}
 pub enum HelpFormat {
     Text,
     Json,
+}
+
+/// A simple clap argument group for controlling the log level for cli usage.
+#[derive(Clone, Debug, clap::Args)]
+pub struct ClapLogLevelArgs {
+    /// Enable verbose logging.
+    #[arg(
+        short,
+        long,
+        global = true,
+        group = "verbosity",
+        help_heading = "Log levels"
+    )]
+    pub verbose: bool,
+    /// Print diagnostics, but nothing else.
+    #[arg(
+        short,
+        long,
+        global = true,
+        group = "verbosity",
+        help_heading = "Log levels"
+    )]
+    /// Disable all logging (but still exit with status code "1" upon detecting diagnostics).
+    #[arg(
+        short,
+        long,
+        global = true,
+        group = "verbosity",
+        help_heading = "Log levels"
+    )]
+    pub silent: bool,
 }

@@ -148,8 +148,8 @@
                                     },
                                     "minItems": 1
                                 },
-                                "initial": {
-                                    "description": "You might find one of your commands fails on a fresh build if zetch hasn't run yet due to dependencies on other zetched files, i.e. a circular dependency. When no lockfile is found, or --force is used, if any cli variable has initial set zetch will run twice, on the first run cli vars will use their initials where they have them, on the second render the real commands will compute the values."
+                                "light": {
+                                    "description": "The value to use when in rendering in --light or --superlight mode. If not set, the var will be treated as an empty string."
                                 },
                                 "coerce": {
                                     "type": "string",

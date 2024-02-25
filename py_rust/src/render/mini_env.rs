@@ -60,33 +60,42 @@ pub fn new_mini_env<'a>(root: &Path, state: &'a State) -> Result<minijinja::Envi
             ));
         }
 
-        // Add the rust-wrapped python fn to the minijinja environment:
-        env.add_function(
-            name.clone(),
-            move |
-                    values: minijinja::value::Rest<minijinja::Value>|
-                    -> core::result::Result<minijinja::Value, minijinja::Error> {
-                let result =
-                    Python::with_gil(|py| -> Result<serde_json::Value, Zerr> {
-                        let (py_args, py_kwargs) = py_interface::mini_values_to_py_params(py, values)?;
-                        let py_result = py_fn
-                            .call(py, py_args, py_kwargs)
-                            .map_err(|e: PyErr| zerr!(Zerr::CustomPyFunctionError, "{}", e))?;
-                        let rustified: serde_json::Value =
-                            depythonize(py_result.as_ref(py)).change_context(Zerr::CustomPyFunctionError).attach_printable_lazy(|| {
-                                "Failed to convert python result to a rust-like value."
-                            })?;
-                        Ok(rustified)
-                    });
-                match result {
-                    Err(e) => Err(minijinja::Error::new(
-                        minijinja::ErrorKind::InvalidOperation,
-                        format!("Failed to call custom filter '{}'. Err: \n{:?}", name, e),
-                    )),
-                    Ok(result) => Ok(minijinja::Value::from_serializable(&result)),
-                }
-            },
-        )
+        // If superlight, add a pseudo fn that returns an empty string
+        if state.superlight {
+            let empty_str = minijinja::Value::from_safe_string("".to_string());
+            env.add_function(
+                name.clone(),
+                move |_values: minijinja::value::Rest<minijinja::Value>| empty_str.clone(),
+            );
+        } else {
+            // Add the rust-wrapped python fn to the minijinja environment:
+            env.add_function(
+                name.clone(),
+                move |
+                        values: minijinja::value::Rest<minijinja::Value>|
+                        -> core::result::Result<minijinja::Value, minijinja::Error> {
+                    let result =
+                        Python::with_gil(|py| -> Result<serde_json::Value, Zerr> {
+                            let (py_args, py_kwargs) = py_interface::mini_values_to_py_params(py, values)?;
+                            let py_result = py_fn
+                                .call(py, py_args, py_kwargs)
+                                .map_err(|e: PyErr| zerr!(Zerr::CustomPyFunctionError, "{}", e))?;
+                            let rustified: serde_json::Value =
+                                depythonize(py_result.as_ref(py)).change_context(Zerr::CustomPyFunctionError).attach_printable_lazy(|| {
+                                    "Failed to convert python result to a rust-like value."
+                                })?;
+                            Ok(rustified)
+                        });
+                    match result {
+                        Err(e) => Err(minijinja::Error::new(
+                            minijinja::ErrorKind::InvalidOperation,
+                            format!("Failed to call custom filter '{}'. Err: \n{:?}", name, e),
+                        )),
+                        Ok(result) => Ok(minijinja::Value::from_serializable(&result)),
+                    }
+                },
+            )
+        }
     }
 
     Ok(env)

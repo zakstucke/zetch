@@ -66,7 +66,7 @@ impl CtxEnvVar {
 pub struct CtxCliVar {
     pub commands: Vec<String>,
     pub coerce: Option<Coerce>,
-    pub initial: Option<serde_json::Value>,
+    pub light: Option<serde_json::Value>,
 }
 
 impl CtxCliVar {

@@ -415,6 +415,8 @@ def test_custom_ext_multi_render():
     """Check custom extensions don't break when renderer runs multiple times (e.g. when cli var initials used).
 
     This test was made for a real bug where extensions were lost after the first renderer usage.
+
+    NOTE: the renderer no longer runs multiple times so this test is redundant, better to keep though! Switched initial to light as that's the replacement.
     """
     with TmpFileManager() as manager:
         ext = manager.tmpfile(
@@ -433,15 +435,15 @@ def capitalize(s):
                     "engine": {"custom_extensions": [str(ext)]},
                     "context": {
                         "cli": {
-                            "var_with_initial": {
+                            "var_with_light": {
                                 "commands": ["echo bar"],
-                                "initial": "init",
+                                "light": "init",
                             }
                         }
                     },
                 }
             ),
-            "{{ capitalize('foo') }} {{ var_with_initial }}",
+            "{{ capitalize('foo') }} {{ var_with_light }}",
             "Foo bar",
         )
 
@@ -470,9 +472,10 @@ def capitalize(s):
 # DONE probably remove most engine config, maybe making top level if minimal enough, we don't want to mess with files and error early (so enforce no_undefined and keep_trailing_newline)
 # DONE fix schema - not sure why its not working
 # DONE: order everything in the lockfile to prevent diffs when nothings actually changed.
-# TODO: Before thinking about modes/light etc as other solutions to circular deps. I think by default the repeated rendering should be improved to be a first class citizen, then, every run, static+env rendered in first + initials when not existing in lockfile + others clis as empty strings + custom extensions as empty strings, only then a second render with cli commands, this could get rid of a bunch of circular dep problems natively.
-# TODO some sort of heavy/light/modes solution to caching values and not recomputing, maybe also for ban-defaults etc. maybe a modes top level config section, where a mode can override any config, set ban-defaults etc, need to think, but also need a way to only run certain post and pre in certain modes, need to think on best api.
+# TODO: modes which should be the way ban-defaults are done, should be able to control task rendering too.
+# TODO: static, env default and cli light should all have the same syntax, either the object with value|coerce, and just raw string which is treated as such (can have same schema object and use CliStaticVar for all).
 # TODO think about interop with jinja,cookiecutter,copier,etc
 # TODO decide and document optimal formatting, probably using scolvins and making sure it can working with custom extensions.
 # TODO fix the conch parser rust incompatibility upstream somehow
 # TODO for read put and delete, should compare with dasel to make sure not missing anything key
+# TODO: (NOTE probably not needed to stablise and have docs published) context parent child hierarchy, config files should be processed deep down and can give different variables in different areas.

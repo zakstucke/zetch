@@ -50,6 +50,14 @@ pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String
     Python::with_gil(|py| {
         // Pythonize a copy of the context and add to the global PY_CONTEXT so its usable from zetch.context():
         let mut py_ctx = PY_CONTEXT.lock();
+
+        if py_ctx.is_some() {
+            return Err(zerr!(
+                Zerr::InternalError,
+                "Custom extensions loaded more than once."
+            ));
+        }
+
         *py_ctx = Some(pythonize(py, &state.ctx).change_context(Zerr::InternalError)?);
 
         let syspath: &PyList = py
@@ -110,10 +118,8 @@ pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String
         Ok::<_, error_stack::Report<Zerr>>(())
     })?;
 
-    // Extract a copy of the user funcs to add to minijinja env:
-    // Note copying as env might be created multiple times (e.g. initial)
-    // TODO: instead of this maybe reusing an env? In general need a bit of a refactor!
-    Ok(PY_USER_FUNCS.lock().clone())
+    // Extra the loaded user funcs, this fn is checked to only run once. So no need to clone and maintain global var.
+    Ok(std::mem::take(&mut *PY_USER_FUNCS.lock()))
 }
 
 pub fn mini_values_to_py_params(

@@ -68,14 +68,6 @@ pub fn run() -> Result<(), Zerr> {
             .change_context(Zerr::InternalError)?;
     }
 
-    // Stdout if enabled:
-    if let Some(level) = args.log_level_args.level() {
-        builder = builder
-            .stdout(true, true)
-            .level_from(level)
-            .change_context(Zerr::InternalError)?;
-    }
-
     // Build and set as global logger:
     let log = builder.build().change_context(Zerr::InternalError)?;
     log.register_global().change_context(Zerr::InternalError)?;

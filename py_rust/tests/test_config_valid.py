@@ -216,11 +216,7 @@ def test_read_config(
 
             debug = cli.render(manager.root_dir, manager.tmpfile(cfg_str, suffix=".toml"))["debug"]
             # Some things moved to "conf" that used to be on state:
-            out = (
-                debug["state"][config_var]
-                if config_var in debug["state"]
-                else debug["state"]["conf"][config_var]
-            )
+            out = debug[config_var] if config_var in debug else debug["conf"][config_var]
             assert out == final_expected
 
 
@@ -299,7 +295,7 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                 manager.create_cfg(
                     {"context": {"static": {"FOO": {"value": input_val, "coerce": as_type}}}}
                 ),
-            )["debug"]["state"]["ctx"]["FOO"]
+            )["debug"]["ctx"]["FOO"]
             == expected
         )
 
@@ -324,7 +320,7 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                         }
                     }
                 ),
-            )["debug"]["state"]["ctx"]["FOO"]
+            )["debug"]["ctx"]["FOO"]
             == expected
         )
 
@@ -340,6 +336,6 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                     manager.create_cfg(
                         {"context": {"env": {"FOO": {"env_name": "FOO", "coerce": as_type}}}},
                     ),
-                )["debug"]["state"]["ctx"]["FOO"]
+                )["debug"]["ctx"]["FOO"]
                 == expected
             )

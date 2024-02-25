@@ -34,7 +34,7 @@ def check_single(
     expected: tp.Union[str, tp.Callable[[str], bool]],
     file_type="txt",
     extra_args: tp.Optional["list[str]"] = None,
-    extra_templates_written: tp.Optional["list[pathlib.Path]"] = None,
+    ignore_extra_written: bool = False,
 ):
     template = manager.tmpfile(content=contents, suffix=".zetch.{}".format(file_type))
 
@@ -42,23 +42,22 @@ def check_single(
     result = rendered_info["debug"]
 
     # Should return the correct compiled file:
-    expected_written = [remove_template(template)] + (
-        [remove_template(template) for template in extra_templates_written]
-        if extra_templates_written
-        else []
-    )
-    assert sorted(result["written"]) == sorted(expected_written), (
-        sorted(result["written"]),
-        sorted(expected_written),
-    )
-    assert result["identical"] == [], result["identical"]
+    if not ignore_extra_written:
+        expected_written = [remove_template(template)]
+        assert result["written"] == expected_written, (
+            result["written"],
+            expected_written,
+        )
+        assert result["identical"] == [], result["identical"]
 
     # Original shouldn't have changed:
     with open(template, "r") as file:
         assert contents == file.read()
 
     # Compiled should match expected:
-    with open(result["written"][0], "r") as file:
+    out_path = get_out_path(template)
+    assert out_path is not None
+    with open(out_path, "r") as file:
         output = file.read()
         if isinstance(expected, str):
             assert output == expected, (output, expected)
