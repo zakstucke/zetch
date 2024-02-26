@@ -154,14 +154,48 @@ fn render_inner(
                         let end_line_no = (err_line_no + 3).min(lines.len());
                         let mut s = String::new();
                         for line_no in start_line_no..(end_line_no + 1) {
+                            // Handle keeping aligned, e.g. line numbers start in single digits but go into double digits:
+                            let extra_indent = " "
+                                .repeat(end_line_no.to_string().len() - line_no.to_string().len());
                             let line = lines[line_no - 1];
                             if line_no == err_line_no {
+                                // If possible, identify the portion of the line causing the error, making it bright red and underlined:
+                                // This will only be known in some cases, e.g. mj exposes it for {{ REE + 1 }} when REE is undefined but not {{ REE }}
+                                let fmtted_line = if let Some(source_range) = e.range() {
+                                    // The range is of the entire template, not the line, so need to normalise it for the line:
+                                    let mut offset = 0;
+                                    for l in lines.iter().take(line_no - 1) {
+                                        offset += l.len() + 1;
+                                    }
+                                    let line_range =
+                                        source_range.start - offset..source_range.end - offset;
+                                    // If line range finishes greater than the length of the line, raise internal error as it's something wrong with this block:
+                                    if line_range.end > line.len() {
+                                        return Err(zerr!(
+                                            Zerr::InternalError,
+                                            "Line range end is greater than line length."
+                                        ));
+                                    }
+                                    format!(
+                                        "{}{}{}",
+                                        &line[..line_range.start],
+                                        &line[line_range.clone()].underline().bright_red(),
+                                        &line[line_range.end..]
+                                    )
+                                } else {
+                                    line.to_string()
+                                };
                                 s.push_str(&format!(
                                     "{}",
-                                    format!("{}| {} <-- ERR\n", line_no, line).red().bold()
+                                    format!(
+                                        "{}{}| {} <-- ERR\n",
+                                        extra_indent, line_no, fmtted_line
+                                    )
+                                    .red()
+                                    .bold()
                                 ));
                             } else {
-                                s.push_str(&format!("{}: {}\n", line_no, line));
+                                s.push_str(&format!("{}{}| {}\n", extra_indent, line_no, line));
                             }
                         }
                         out_e = out_e.attach_printable(s);
