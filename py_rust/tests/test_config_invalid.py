@@ -28,6 +28,7 @@ def test_incorrect_config():
                 ),
             )
 
+        # TODO for light and env default too
         # Unknown coerce type for any ctx type:
         for ctx_type, extra_args in [
             ("static", {"value": "1"}),
@@ -53,8 +54,8 @@ def test_incorrect_config():
                     ),
                 )
 
-        # None dict format for any ctx type:
-        for ctx_type in ["static", "env", "cli"]:
+        # None dict format for env/cli types:
+        for ctx_type in ["env", "cli"]:
             with pytest.raises(
                 ValueError,
                 match=re.escape("[context.{}.FOO]: Expected a table.".format(ctx_type)),
@@ -67,27 +68,26 @@ def test_incorrect_config():
                     ),
                 )
 
-        # Missing 'value' for static ctx or 'commands' for cli:
-        for ctx_type, key_name in [("static", "value"), ("cli", "commands")]:
-            with pytest.raises(
-                ValueError,
-                match=re.escape(
-                    "[context.{}.FOO.{}]: This property is required.".format(
-                        ctx_type,
-                        key_name,
-                    )
-                ),
-            ):
-                cli.render(
-                    manager.root_dir,
-                    manager.tmpfile(
-                        "[context]\n[context.{}]\nFOO = {{}}\n".format(ctx_type),
-                        suffix=".toml",
-                    ),
+        # Missing 'commands' for cli:
+        with pytest.raises(
+            ValueError,
+            match=re.escape(
+                "[context.{}.FOO.{}]: This property is required.".format(
+                    ctx_type,
+                    "commands",
                 )
+            ),
+        ):
+            cli.render(
+                manager.root_dir,
+                manager.tmpfile(
+                    "[context]\n[context.cli]\nFOO = {}\n",
+                    suffix=".toml",
+                ),
+            )
 
-        # Unknown key for static/env/cli:
-        for ctx_key in ["static", "env", "cli"]:
+        # Unknown key for env/cli:
+        for ctx_key in ["env", "cli"]:
             with pytest.raises(
                 ValueError,
                 match=re.escape("[context.{}.FOO]: Unknown property: 'bar'.".format(ctx_key)),

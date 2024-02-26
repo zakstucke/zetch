@@ -173,19 +173,32 @@
             "additionalProperties": false
         },
         "static_value": {
-            "type": "object",
-            "properties": {
-                "value": {
-                    "description": "The value of the variable. Can be any valid toml value."
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "value": {
+                            "description": "The value of the variable. Can be any valid toml value."
+                        },
+                        "coerce": {
+                            "type": "string",
+                            "description": "The type to coerce the value to. If not specified, the value kept as defined in the toml.",
+                            "enum": ["json", "str", "int", "float", "bool"]
+                        }
+                    },
+                    "required": ["value"],
+                    "additionalProperties": false
                 },
-                "coerce": {
-                    "type": "string",
-                    "description": "The type to coerce the value to. If not specified, the value kept as defined in the toml.",
-                    "enum": ["json", "str", "int", "float", "bool"]
+                {
+                    "description": "The value itself. Shorthand for { value = '..' }",
+                    "not": {
+                        "type": "object",
+                        "properties": { "coerce": {}, "value": {} },
+                        "required": ["value"],
+                        "additionalProperties": false
+                    }
                 }
-            },
-            "required": ["value"],
-            "additionalProperties": false
+            ]
         }
     }
 }

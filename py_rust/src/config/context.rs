@@ -3,22 +3,11 @@ use std::{collections::HashMap, path::Path};
 use bitbazaar::cli::{Bash, BashErr};
 use serde::{Deserialize, Serialize};
 
+use super::static_var::CtxStaticVar;
 use crate::{
     coerce::{coerce, Coerce},
     prelude::*,
 };
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct CtxStaticVar {
-    pub value: serde_json::Value,
-    pub coerce: Option<Coerce>,
-}
-
-impl CtxStaticVar {
-    pub fn read(&self) -> Result<serde_json::Value, Zerr> {
-        coerce(&self.value, &self.coerce)
-    }
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CtxEnvVar {

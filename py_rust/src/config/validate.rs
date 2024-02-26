@@ -127,6 +127,8 @@ pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Zerr> 
     Ok(())
 }
 
+static COERCE_MSG: &str = "Expected one of ['json', 'str', 'int', 'float', 'bool'].";
+
 /// Because we're hacking together toml validation using a json parser, format the errors a bit more applicably where possible.
 fn format_err(err: Box<dyn valico::common::error::ValicoError>) -> String {
     // Want the actual detail, only use title if detail is missing (crates cli seems to state title is always available but detail not so. But detail seems to always be there.)
@@ -135,18 +137,20 @@ fn format_err(err: Box<dyn valico::common::error::ValicoError>) -> String {
     } else {
         err.get_title()
     };
+    info!(
+        "title: {}, detail {:?}, path: {}, code: {}, source: {:?}",
+        err.get_title(),
+        err.get_detail(),
+        err.get_path(),
+        err.get_code(),
+        err.source()
+    );
 
-    let loc_parts = err
+    let mut loc_parts = err
         .get_path()
         .split('/')
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>();
-
-    let loc_str = if loc_parts.is_empty() {
-        "[root]: ".to_string()
-    } else {
-        format!("[{}]: ", loc_parts.join("."))
-    };
 
     let mut desc = info.to_string();
 
@@ -161,9 +165,19 @@ fn format_err(err: Box<dyn valico::common::error::ValicoError>) -> String {
                 _ => format!("a {}", invalid_type),
             }
         );
-    } else if err_coerce_invalid(&loc_parts, &desc) {
-        desc = "Expected one of ['json', 'str', 'int', 'float', 'bool'].".to_string();
+    } else if desc.contains("Enum conditions are not met") && loc_parts.last() == Some(&"coerce") {
+        desc = COERCE_MSG.to_string();
+    } else if desc.contains("OneOf conditions are not met") {
+        // The only time a oneOf exists is for the CtxStaticVar used in static vars, env defaults and light values. Each of which will only fail if coerce has been specified wrong:
+        loc_parts.push("coerce");
+        desc = COERCE_MSG.to_string();
     }
+
+    let loc_str = if loc_parts.is_empty() {
+        "[root]: ".to_string()
+    } else {
+        format!("[{}]: ", loc_parts.join("."))
+    };
 
     format!(
         "{}{}{}",
@@ -171,17 +185,6 @@ fn format_err(err: Box<dyn valico::common::error::ValicoError>) -> String {
         desc,
         if desc.ends_with('.') { "" } else { "." }
     )
-}
-
-static RE_ENUM_UNMATCHED: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"Enum conditions are not met").expect("Invalid regex pattern"));
-
-fn err_coerce_invalid(loc_parts: &[&str], desc: &str) -> bool {
-    // If its the enum err and it's talking about coerce, then it's our error.
-    if loc_parts.last() != Some(&"coerce") {
-        return false;
-    }
-    RE_ENUM_UNMATCHED.is_match(desc)
 }
 
 static RE_EXTRA_PROP: Lazy<Regex> = Lazy::new(|| {
