@@ -95,7 +95,7 @@ custom_extensions = []
 FOO = {{ value = "foo" }}
 
 [context.env]
-BAR = {{ default = "bar" }}
+BAR = {{ default = {{ value = "bar" }} }}
 
 [context.cli]
 BAZ = {{ commands = ["echo 1"], coerce = "int" }}

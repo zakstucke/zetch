@@ -23,7 +23,7 @@ impl CtxStaticVar {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CtxEnvVar {
     pub env_name: Option<String>,
-    pub default: Option<serde_json::Value>,
+    pub default: Option<CtxStaticVar>,
     pub coerce: Option<Coerce>,
 }
 
@@ -45,7 +45,7 @@ impl CtxEnvVar {
                     ));
                 } else {
                     match &self.default {
-                        Some(value) => return Ok(value.clone()),
+                        Some(value) => return value.read(),
                         None => {
                             return Err(zerr!(
                                 Zerr::ContextLoadError,
@@ -66,7 +66,7 @@ impl CtxEnvVar {
 pub struct CtxCliVar {
     pub commands: Vec<String>,
     pub coerce: Option<Coerce>,
-    pub light: Option<serde_json::Value>,
+    pub light: Option<CtxStaticVar>,
 }
 
 impl CtxCliVar {

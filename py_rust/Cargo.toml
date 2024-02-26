@@ -44,6 +44,7 @@ minijinja = { version = '1.0.10', features = [
   'preserve_order',
   'json',
   'urlencode',
+  'debug',
 ] }
 minijinja-contrib = { version = '1.0.10', features = ['datetime'] }
 
