@@ -2,16 +2,18 @@ import typing_extensions as tp
 
 Coerce_T = tp.Literal["str", "int", "float", "bool", "json"]
 
+StaticCtx_T: tp.TypeAlias = "StaticCtx | tp.Any"
+
 
 class CliCtx(tp.TypedDict):
     commands: "list[str]"
     coerce: tp.NotRequired[Coerce_T]
-    light: tp.NotRequired["StaticCtx"]
+    light: tp.NotRequired["StaticCtx_T"]
 
 
 class EnvCtx(tp.TypedDict):
     env_name: tp.NotRequired[str]
-    default: tp.NotRequired["StaticCtx"]
+    default: tp.NotRequired["StaticCtx_T"]
     coerce: tp.NotRequired[Coerce_T]
 
 
@@ -31,7 +33,7 @@ class Engine(tp.TypedDict):
 
 
 class InputContext(tp.TypedDict):
-    static: tp.NotRequired["dict[str, StaticCtx]"]
+    static: tp.NotRequired["dict[str, StaticCtx_T]"]
     cli: tp.NotRequired["dict[str, CliCtx]"]
     env: tp.NotRequired["dict[str, EnvCtx]"]
 
