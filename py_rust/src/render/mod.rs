@@ -23,8 +23,6 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
         self::lockfile::Lockfile::load(render_args.root.clone(), render_args.force)
     });
 
-    // TODO double prints what's that about
-
     let mut state = State::new(args)?;
     state.load_all_vars()?;
     debug!("State: {:#?}", state);

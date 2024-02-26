@@ -85,8 +85,8 @@ def test_ban_defaults(
                         {
                             "context": {
                                 "env": {
-                                    "TEST_RAND_1": {"default": "Hello"},
-                                    "TEST_RAND_2": {"default": "World"},
+                                    "TEST_RAND_1": {"default": {"value": "Hello"}},
+                                    "TEST_RAND_2": {"default": {"value": "World"}},
                                 }
                             }
                         }

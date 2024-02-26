@@ -76,14 +76,14 @@ def cfg_str(config: InputConfig) -> str:
         (
             {"FOO": "abc"},
             "ctx",
-            cfg_str({"context": {"env": {"FOO": {"default": True}}}}),
+            cfg_str({"context": {"env": {"FOO": {"default": {"value": True}}}}}),
             {"FOO": "abc"},
         ),
         # Should only use default when no env var:
         (
             {},
             "ctx",
-            cfg_str({"context": {"env": {"FOO": {"env_name": "BAR", "default": True}}}}),
+            cfg_str({"context": {"env": {"FOO": {"env_name": "BAR", "default": {"value": True}}}}}),
             {"FOO": True},
         ),
         (
@@ -287,7 +287,12 @@ def test_parallelized_context_cli_commands():
 def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
     """Confirm value conversion works correctly when valid in all input types."""
     with TmpFileManager() as manager:
-        # Test static, cli and env variants:
+        # Check:
+        # - Static
+        # - CLI
+        # - Env
+        # - Cli light values
+        # - Env default values
 
         assert (
             cli.render(
@@ -339,3 +344,44 @@ def test_valid_coercion(as_type: tp.Any, input_val: tp.Any, expected: tp.Any):
                 )["debug"]["ctx"]["FOO"]
                 == expected
             )
+
+        # Cli light values:
+        assert (
+            cli.render(
+                manager.root_dir,
+                manager.create_cfg(
+                    {
+                        "context": {
+                            "cli": {
+                                "FOO": {
+                                    "commands": ["echo bar"],
+                                    "light": {"value": input_val, "coerce": as_type},
+                                }
+                            }
+                        }
+                    },
+                ),
+                extra_args=["--light"],
+            )["debug"]["ctx"]["FOO"]
+            == expected
+        )
+
+        # Env default values:
+        assert (
+            cli.render(
+                manager.root_dir,
+                manager.create_cfg(
+                    {
+                        "context": {
+                            "env": {
+                                "FOO": {
+                                    "env_name": "FOO",
+                                    "default": {"value": input_val, "coerce": as_type},
+                                }
+                            }
+                        }
+                    }
+                ),
+            )["debug"]["ctx"]["FOO"]
+            == expected
+        )

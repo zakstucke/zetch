@@ -86,22 +86,6 @@ def test_incorrect_config():
                     ),
                 )
 
-        # 'value' is empty string/null for static / env 'default':
-        for ctx_type, key_name in [("static", "value"), ("env", "default")]:
-            with pytest.raises(
-                ValueError,
-                match=re.escape(
-                    "[context.{}.FOO.{}]: Cannot be an empty string.".format(ctx_type, key_name)
-                ),
-            ):
-                cli.render(
-                    manager.root_dir,
-                    manager.tmpfile(
-                        "[context]\n[context.{}]\nFOO = {{ {} = '' }}\n".format(ctx_type, key_name),
-                        suffix=".toml",
-                    ),
-                )
-
         # Unknown key for static/env/cli:
         for ctx_key in ["static", "env", "cli"]:
             with pytest.raises(

@@ -22,7 +22,7 @@ from ..helpers.types import InputConfig
         ({"context": {"cli": {"VAR": {"commands": ["echo foo"]}}}}, "var: {{ VAR }}", "var: "),
         # Light value should work:
         (
-            {"context": {"cli": {"VAR": {"commands": ["echo foo"], "light": "LIGHT"}}}},
+            {"context": {"cli": {"VAR": {"commands": ["echo foo"], "light": {"value": "LIGHT"}}}}},
             "var: {{ VAR }}",
             "var: LIGHT",
         ),
@@ -31,11 +31,11 @@ from ..helpers.types import InputConfig
             {
                 "context": {
                     "static": {"VAR_STATIC": {"value": "STATIC"}},
-                    "env": {"VAR_ENV": {"default": "ENV"}},
+                    "env": {"VAR_ENV": {"default": {"value": "ENV"}}},
                     "cli": {
                         "VAR": {
                             "commands": ["echo foo"],
-                            "light": "LIGHT",
+                            "light": {"value": "LIGHT"},
                         }
                     },
                 }
@@ -165,7 +165,7 @@ def test_light_fixes_circular_dep():
                                     ),
                                 )
                             ],
-                            "light": "LIGHT",
+                            "light": {"value": "LIGHT"},
                         },
                     }
                 }

@@ -437,7 +437,7 @@ def capitalize(s):
                         "cli": {
                             "var_with_light": {
                                 "commands": ["echo bar"],
-                                "light": "init",
+                                "light": {"value": "init"},
                             }
                         }
                     },

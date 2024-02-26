@@ -6,12 +6,12 @@ Coerce_T = tp.Literal["str", "int", "float", "bool", "json"]
 class CliCtx(tp.TypedDict):
     commands: "list[str]"
     coerce: tp.NotRequired[Coerce_T]
-    light: tp.NotRequired[tp.Any]
+    light: tp.NotRequired["StaticCtx"]
 
 
 class EnvCtx(tp.TypedDict):
     env_name: tp.NotRequired[str]
-    default: tp.NotRequired[tp.Any]
+    default: tp.NotRequired["StaticCtx"]
     coerce: tp.NotRequired[Coerce_T]
 
 

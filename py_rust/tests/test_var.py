@@ -12,7 +12,7 @@ sample_config = """
   STAT_TEST_VAR = { value = ["Hello", "World"] }
 
 [context.env]
-  ENV_TEST_VAR = { default = "World" }
+  ENV_TEST_VAR = { default = { value = "World" } }
 
 [context.cli]
   CLI_TEST_VAR = { commands = ["echo 1"], coerce = "int" }

@@ -180,12 +180,12 @@ ENGINE_BUILTINS: AllBuiltins = {
     "functions": {
         # Custom to zetch:
         "env_default": {
-            "description": "Load the default context env var, rather than the active one. \n\nE.g. if you have context.env.FOO = { default = 'bar' } and the env variable is set to 'baz':\n\n{{ env_default('FOO') }} -> 'bar'\n{{ FOO }} -> 'baz'.",
+            "description": "Load the default context env var, rather than the active one. \n\nE.g. if you have context.env.FOO = { default = { value = 'bar' } } and the env variable is set to 'baz':\n\n{{ env_default('FOO') }} -> 'bar'\n{{ FOO }} -> 'baz'.",
             "tests": [
                 lambda: {
                     "input": "default: {{ env_default('FOO') }}, actual: {{ FOO }}",
                     "env": {"FOO": "baz"},
-                    "env_ctx": {"FOO": {"default": "bar"}},
+                    "env_ctx": {"FOO": {"default": {"value": "bar"}}},
                     "expected": "default: bar, actual: baz",
                 }
             ],

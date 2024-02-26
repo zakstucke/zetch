@@ -115,7 +115,7 @@ impl State {
                 // In light mode use the user provided default or an empty string, rather than running a user command:
                 if self.light {
                     if let Some(light_val) = &value.light {
-                        Ok(light_val.clone())
+                        Ok(light_val.read()?)
                     } else {
                         Ok(serde_json::Value::String("".to_string()))
                     }
@@ -246,7 +246,7 @@ impl State {
                     // If light mode, need to use the light user replacement otherwise an empty string: (no need for threads)
                     if self.light {
                         let value = if let Some(light_val) = &var.light {
-                            light_val.clone()
+                            light_val.read()?
                         } else {
                             serde_json::Value::String("".to_string())
                         };

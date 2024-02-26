@@ -42,7 +42,7 @@ pub fn new_mini_env<'a>(root: &Path, state: &'a State) -> Result<minijinja::Envi
     }
 
     // Load in custom rust functions:
-    env.add_function("env_default", gen_env_default_fn(state));
+    env.add_function("env_default", gen_env_default_fn(state)?);
 
     // Load in any custom extensions to the PY_USER_FUNCS global:
     let custom_funcs = py_interface::load_custom_exts(&state.conf.engine.custom_extensions, state)?;
@@ -121,16 +121,19 @@ fn custom_loader<'x, P: AsRef<Path> + 'x>(
 
 fn gen_env_default_fn(
     state: &State,
-) -> impl Fn(String) -> core::result::Result<minijinja::Value, minijinja::Error> {
+) -> Result<impl Fn(String) -> core::result::Result<minijinja::Value, minijinja::Error>, Zerr> {
     // Get a simple dict of available env vars to their defaults as minijinja::Value(s):
     let mut env_defaults = HashMap::new();
     for (key, value) in state.conf.context.env.iter() {
-        if let Some(default) = value.default.as_ref() {
-            env_defaults.insert(key.clone(), minijinja::Value::from_serializable(default));
+        if let Some(var) = value.default.as_ref() {
+            env_defaults.insert(
+                key.clone(),
+                minijinja::Value::from_serializable(&var.read()?),
+            );
         }
     }
 
-    move |name: String| match env_defaults.get(&name) {
+    Ok(move |name: String| match env_defaults.get(&name) {
         Some(default) => Ok(default.clone()),
         None => {
             let mut env_keys = env_defaults
@@ -147,5 +150,5 @@ fn gen_env_default_fn(
                     ),
                 ))
         }
-    }
+    })
 }

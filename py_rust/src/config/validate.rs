@@ -61,17 +61,6 @@ pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Zerr> 
         }
     }
 
-    // Check stat.value is not empty string, plus same for env.default (if provided):
-    for (key, value) in conf.context.stat.iter() {
-        validate_not_empty_string(format!("[context.static.{}.value]", key), &value.value)?;
-    }
-
-    for (key, value) in conf.context.env.iter() {
-        if let Some(default) = &value.default {
-            validate_not_empty_string(format!("[context.env.{}.default]", key), default)?;
-        }
-    }
-
     // ignore_files and engine.custom_extensions should be resolved relative to the config file, so rewrite the paths if needed and make sure they exist:
     let validate_and_rewrite = |in_path: String| -> Result<String, Zerr> {
         // Make relative to config file if not absolute:
@@ -224,20 +213,4 @@ fn run_against_schema(
         .compile_and_return(json_schema, true)
         .change_context(Zerr::InternalError)?;
     Ok(schema.validate(json))
-}
-
-fn validate_not_empty_string(context: String, value: &serde_json::Value) -> Result<(), Zerr> {
-    let valid = match &value {
-        serde_json::Value::String(s) => !s.trim().is_empty(),
-        _ => true,
-    };
-    if valid {
-        Ok(())
-    } else {
-        Err(zerr!(
-            Zerr::ConfigInvalid,
-            "{}: Cannot be an empty string.",
-            context
-        ))
-    }
 }

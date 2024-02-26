@@ -92,21 +92,7 @@
                 "static": {
                     "description": "Statically configured global variables.",
                     "patternProperties": {
-                        "^.*$": {
-                            "type": "object",
-                            "properties": {
-                                "value": {
-                                    "description": "The value of the variable. Can be any valid toml value."
-                                },
-                                "coerce": {
-                                    "type": "string",
-                                    "description": "The type to coerce the value to. If not specified, the value kept as defined in the toml.",
-                                    "enum": ["json", "str", "int", "float", "bool"]
-                                }
-                            },
-                            "required": ["value"],
-                            "additionalProperties": false
-                        }
+                        "^.*$": { "$ref": "#/$defs/static_value" }
                     },
                     "additionalProperties": false
                 },
@@ -121,7 +107,8 @@
                                     "description": "The name of the environment variable to load into this context var, this defaults to the name of the config var."
                                 },
                                 "default": {
-                                    "description": "The default value of the variable if the environment variable is not set."
+                                    "description": "The default value of the variable if the environment variable is not set.",
+                                    "$ref": "#/$defs/static_value"
                                 },
                                 "coerce": {
                                     "type": "string",
@@ -149,7 +136,8 @@
                                     "minItems": 1
                                 },
                                 "light": {
-                                    "description": "The value to use when in rendering in --light or --superlight mode. If not set, the var will be treated as an empty string."
+                                    "description": "The value to use when in rendering in --light or --superlight mode. If not set, the var will be treated as an empty string.",
+                                    "$ref": "#/$defs/static_value"
                                 },
                                 "coerce": {
                                     "type": "string",
@@ -182,6 +170,21 @@
                     "minItems": 1
                 }
             },
+            "additionalProperties": false
+        },
+        "static_value": {
+            "type": "object",
+            "properties": {
+                "value": {
+                    "description": "The value of the variable. Can be any valid toml value."
+                },
+                "coerce": {
+                    "type": "string",
+                    "description": "The type to coerce the value to. If not specified, the value kept as defined in the toml.",
+                    "enum": ["json", "str", "int", "float", "bool"]
+                }
+            },
+            "required": ["value"],
             "additionalProperties": false
         }
     }
