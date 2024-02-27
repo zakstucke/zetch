@@ -154,28 +154,23 @@ def test_tasks_invalid(
 @pytest.mark.parametrize(
     "desc, config, cb",
     [
-        # Important task! Written to catch bug.
+        # NOTE: written to catch bug:
         # Make sure var works in post, and still everything works when pre exists too. (pre should work with read/put/del but not var):
         (
-            "basic_no_cmd",
+            "var_in_post_when_pre_exist",
             {
                 "tasks": {
                     "pre": [
                         {
                             "commands": [
-                                # TODO after next bb update, replace the below with the commented out:
                                 "echo foo",
-                                # Random stuff, just not var as that wouldn't work in pre:
-                                # 'echo \'{"ree": "randomo"}\' > file.json',
-                                # "zetch read file.json ree",
-                                # "zetch put file.json value bar",
-                                # "zetch del file.json ree",
                             ]
                         }
                     ],
                     "post": [
                         {
                             "commands": [
+                                "zetch var FOO",
                                 'echo \'{"ree": "randomo"}\' > file.json',
                                 "zetch read file.json ree",
                                 "zetch put file.json value bar",
@@ -190,6 +185,19 @@ def test_tasks_invalid(
             lambda man: lambda: check_file(
                 os.path.join(man.root_dir, "file.json"), '{\n  "value": "bar"\n}'
             ),
+        ),
+        # NOTE: written to catch: parent state decoding bug when env vars used in var subcommands in tasks, so check doesn't error anymore
+        # (and doing the same for cli just in case)
+        (
+            "var_in_post_when_env_ctx_used",
+            {
+                "tasks": {"post": [{"commands": ["zetch var BAR", "zetch var BAZ"]}]},
+                "context": {
+                    "env": {"BAR": {"default": {"value": "bar"}}},
+                    "cli": {"BAZ": {"commands": ["echo baz"]}},
+                },
+            },
+            None,
         ),
     ],
 )

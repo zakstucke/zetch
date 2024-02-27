@@ -78,7 +78,7 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
         if written.len() == 1 { "" } else { "s" },
         identical.len(),
         if num_tasks > 0 {
-            format!("{} tasks run.", num_tasks).to_string()
+            format!(" {} tasks run.", num_tasks).to_string()
         } else {
             "".to_string()
         },

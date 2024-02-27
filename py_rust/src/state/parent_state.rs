@@ -54,9 +54,9 @@ pub fn load_parent_state() -> Result<Option<StoredParentState>, Zerr> {
         let path = Path::new(&path);
         if path.exists() {
             let contents = std::fs::read_to_string(path).change_context(Zerr::InternalError)?;
-            return Ok(Some(
-                serde_json::from_str(&contents).change_context(Zerr::InternalError)?,
-            ));
+            let decoded: StoredParentState =
+                serde_json::from_str(&contents).change_context(Zerr::InternalError)?;
+            return Ok(Some(decoded));
         } else {
             warn!("Nested zetch task seems to be running, tried loading parent state from {}, but it doesn't exist. You may have orphaned {}/{} environment variables.", path.display(), IN_TASK_ENV_VAR, CACHED_STATE_ENV_VAR);
         }

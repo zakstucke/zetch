@@ -34,7 +34,12 @@ impl<'de> Deserialize<'de> for CtxStaticVar {
                 value: map.remove("value").unwrap(),
                 // Coerce may or may not be present:
                 coerce: if let Some(coerce) = map.remove("coerce") {
-                    Some(Coerce::deserialize(coerce).map_err(serde::de::Error::custom)?)
+                    // Might be null:
+                    if coerce.is_null() {
+                        None
+                    } else {
+                        Some(Coerce::deserialize(coerce).map_err(serde::de::Error::custom)?)
+                    }
                 } else {
                     None
                 },
