@@ -12,7 +12,7 @@ custom_extensions = []
 commands = ["./dev_scripts/pkg.sh update_versions"]
 
 [context.static]
-PY_RUST_VERSION = { value = "0.0.14" }
+PY_RUST_VERSION = { value = "0.0.15" }
 
 [context.env]
 DEBUG = { default = true, coerce = "bool" }
