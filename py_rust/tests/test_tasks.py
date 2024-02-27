@@ -149,3 +149,65 @@ def test_tasks_invalid(
         )
         with pytest.raises(ValueError, match=err_expected):
             cli.render(manager.root_dir, conf_file)
+
+
+@pytest.mark.parametrize(
+    "desc, config, cb",
+    [
+        # Important task! Written to catch bug.
+        # Make sure var works in post, and still everything works when pre exists too. (pre should work with read/put/del but not var):
+        (
+            "basic_no_cmd",
+            {
+                "tasks": {
+                    "pre": [
+                        {
+                            "commands": [
+                                # TODO after next bb update, replace the below with the commented out:
+                                "echo foo",
+                                # Random stuff, just not var as that wouldn't work in pre:
+                                # 'echo \'{"ree": "randomo"}\' > file.json',
+                                # "zetch read file.json ree",
+                                # "zetch put file.json value bar",
+                                # "zetch del file.json ree",
+                            ]
+                        }
+                    ],
+                    "post": [
+                        {
+                            "commands": [
+                                'echo \'{"ree": "randomo"}\' > file.json',
+                                "zetch read file.json ree",
+                                "zetch put file.json value bar",
+                                "zetch del file.json ree",
+                                "zetch var FOO",
+                            ]
+                        }
+                    ],
+                },
+                "context": {"static": {"FOO": {"value": "bar"}}},
+            },
+            lambda man: lambda: check_file(
+                os.path.join(man.root_dir, "file.json"), '{\n  "value": "bar"\n}'
+            ),
+        ),
+    ],
+)
+def test_tasks_various(
+    desc: str,
+    config: InputConfig,
+    # Setup callable returns either None or a callable that will be called after the test to run any other checks.
+    cb: "tp.Optional[tp.Callable[[TmpFileManager], tp.Optional[tp.Callable[[], tp.Any]]]]",
+):
+    with TmpFileManager() as manager:
+        conf_file = manager.tmpfile(
+            zetch._toml_create(config),
+            full_name="zetch.config.toml",
+        )
+
+        post_check = cb(manager) if cb else None
+
+        cli.render(manager.root_dir, conf_file)
+
+        if post_check:
+            post_check()

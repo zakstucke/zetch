@@ -8,7 +8,10 @@ use tempfile::NamedTempFile;
 
 use super::State;
 use crate::{
-    config::{conf::Config, tasks::parent_task_active},
+    config::{
+        conf::Config,
+        tasks::{parent_task_active, IN_TASK_ENV_VAR},
+    },
     prelude::*,
 };
 
@@ -26,15 +29,18 @@ pub struct StoredParentState {
 ///
 /// Returns the PathBuf to the temporary file.
 pub fn store_parent_state(state: &State) -> Result<PathBuf, Zerr> {
-    let state = StoredParentState {
+    let stored_state = StoredParentState {
         conf: state.conf.clone(),
         ctx: state.ctx.clone(),
         final_config_path: state.final_config_path.clone(),
     };
 
     let temp = NamedTempFile::new().change_context(Zerr::InternalError)?;
-    serde_json::to_writer(&temp, &state).change_context(Zerr::InternalError)?;
-    Ok(temp.path().to_path_buf())
+    serde_json::to_writer(&temp, &stored_state).change_context(Zerr::InternalError)?;
+    let buf = temp.path().to_path_buf();
+    // Keep stored to prevent dropping and getting cleaned up too early:
+    state.cached_state_file.lock().replace(temp);
+    Ok(buf)
 }
 
 /// Load the cached state if it's available, return None otherwise.
@@ -51,6 +57,8 @@ pub fn load_parent_state() -> Result<Option<StoredParentState>, Zerr> {
             return Ok(Some(
                 serde_json::from_str(&contents).change_context(Zerr::InternalError)?,
             ));
+        } else {
+            warn!("Nested zetch task seems to be running, tried loading parent state from {}, but it doesn't exist. You may have orphaned {}/{} environment variables.", path.display(), IN_TASK_ENV_VAR, CACHED_STATE_ENV_VAR);
         }
     }
     Ok(None)

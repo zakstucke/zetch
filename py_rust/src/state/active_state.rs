@@ -4,6 +4,8 @@ use std::{
 };
 
 use bitbazaar::timeit;
+use parking_lot::Mutex;
+use tempfile::NamedTempFile;
 
 use super::parent_state::load_parent_state;
 use crate::{args::Command, config::conf::Config, prelude::*};
@@ -25,6 +27,10 @@ pub struct State {
 
     /// True if --superlight
     pub superlight: bool,
+
+    // Storing the cached state file to prevent being dropped too early:
+    // Bit of a hack, but mutex easier than making state mutable where this needs to be set:
+    pub cached_state_file: Mutex<Option<NamedTempFile>>,
 }
 
 impl State {
@@ -42,6 +48,7 @@ impl State {
                 final_config_path: parent_shared_state.final_config_path,
                 light: false,
                 superlight: false,
+                cached_state_file: Mutex::new(None),
             }
         } else {
             let final_config_path = build_final_config_path(
@@ -88,6 +95,7 @@ impl State {
                 final_config_path,
                 light,
                 superlight,
+                cached_state_file: Mutex::new(None),
             }
         };
 
