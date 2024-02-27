@@ -137,14 +137,6 @@ fn format_err(err: Box<dyn valico::common::error::ValicoError>) -> String {
     } else {
         err.get_title()
     };
-    info!(
-        "title: {}, detail {:?}, path: {}, code: {}, source: {:?}",
-        err.get_title(),
-        err.get_detail(),
-        err.get_path(),
-        err.get_code(),
-        err.source()
-    );
 
     let mut loc_parts = err
         .get_path()
