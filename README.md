@@ -34,6 +34,33 @@ Binaries are available for:
 
 If your platform isn't supported, [file an issue](https://github.com/zakstucke/zetch/issues).
 
+```
+zetch: In-place, continuous templater.
+
+Usage: zetch [OPTIONS] <COMMAND>
+
+Commands:
+  render           Render all templates found whilst traversing the given root (default)
+  var              Read a finalised context variable from the config file
+  read             Read sections of json/toml/yaml/yml files various file types from the command line, outputting in json
+  put              Put/modify sections of json/toml/yaml/yml files, preserving comments and existing formatting where possible
+  del              Delete sections of json/toml/yaml/yml files, preserving comments and existing formatting where possible
+  init             Initialize the config file in the current directory
+  replace-matcher  Replace a template matcher with another, e.g. zetch -> zet
+  version          Display zetch's version
+  help             Print this message or the help of the given subcommand(s)
+
+Options:
+  -c, --config <CONFIG>  The config file to use. [default: ./zetch.config.toml]
+  -h, --help             Print help
+  -V, --version          Print version
+
+Log levels:
+  -v, --verbose  Enable verbose logging
+  -s, --silent   Print diagnostics, but nothing else. Disable all logging (but still exit with status code "1" upon detecting diagnostics)
+
+For help with a specific command, see: `zetch help <command>`.
+```
 
 
 ## Usage

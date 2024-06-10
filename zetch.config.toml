@@ -1,4 +1,4 @@
-#:schema https://raw.githubusercontent.com/zakstucke/zetch/v0.0.10/py_rust/src/config/schema.json
+#:schema https://raw.githubusercontent.com/zakstucke/zetch/v0.0.16/py_rust/src/config/schema.json
 
 ignore_files = [".gitignore"]
 
