@@ -1,7 +1,3 @@
-use bitbazaar::{
-    timeit,
-    timing::{format_duration, GLOBAL_TIME_RECORDER},
-};
 use colored::Colorize;
 use minijinja::context;
 
@@ -14,9 +10,12 @@ mod walker;
 pub use lockfile::hash_contents;
 pub use walker::get_template_matcher_rewrite_mapping;
 
-use crate::{args::RenderCommand, prelude::*, render::mini_env::new_mini_env, state::State};
+use crate::{
+    args::RenderCommand, prelude::*, render::mini_env::new_mini_env, state::State,
+    utils::timing::format_duration,
+};
 
-pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<bool, Zerr> {
+pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<bool, Report<Zerr>> {
     args_validate::args_validate(render_args)?;
 
     let mut lockfile = timeit!("Lockfile preparation", {
@@ -78,7 +77,7 @@ pub fn render(args: &crate::args::Args, render_args: &RenderCommand) -> Result<b
         if written.len() == 1 { "" } else { "s" },
         identical.len(),
         if num_tasks > 0 {
-            format!(" {} tasks run.", num_tasks).to_string()
+            format!(" {num_tasks} tasks run.").to_string()
         } else {
             "".to_string()
         },
@@ -106,7 +105,7 @@ fn render_inner(
         Vec<crate::render::template::Template>,
         Vec<crate::render::template::Template>,
     ),
-    Zerr,
+    Report<Zerr>,
 > {
     let walker = timeit!("Filesystem walker creation", {
         self::walker::create(&render_args.root, state)
@@ -140,7 +139,7 @@ fn render_inner(
                 Ok(compiled) => compiled,
                 Err(e) => {
                     let mut out_e = zerr!(Zerr::RenderTemplateError, "Failed to render template.")
-                        .attach_printable(format!("{}", e));
+                        .attach_printable(format!("{e}"));
 
                     // Rendering failed, important here to give a really nice error as common user error.
                     // So print the lines around the error if possible:
@@ -185,15 +184,12 @@ fn render_inner(
                                 };
                                 s.push_str(&format!(
                                     "{}",
-                                    format!(
-                                        "{}{}| {} <-- ERR\n",
-                                        extra_indent, line_no, fmtted_line
-                                    )
-                                    .red()
-                                    .bold()
+                                    format!("{extra_indent}{line_no}| {fmtted_line} <-- ERR\n")
+                                        .red()
+                                        .bold()
                                 ));
                             } else {
-                                s.push_str(&format!("{}{}| {}\n", extra_indent, line_no, line));
+                                s.push_str(&format!("{extra_indent}{line_no}| {line}\n"));
                             }
                         }
                         out_e = out_e.attach_printable(s);

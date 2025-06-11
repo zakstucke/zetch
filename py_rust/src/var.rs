@@ -5,7 +5,7 @@ use crate::{
 };
 
 /// Read a finalised config variable.
-pub fn read_var(args: &crate::args::Args, read: &VarCommand) -> Result<(), Zerr> {
+pub fn read_var(args: &crate::args::Args, read: &VarCommand) -> Result<(), Report<Zerr>> {
     let mut state = State::new(args)?;
 
     // Only need to load the specific target:
@@ -14,7 +14,7 @@ pub fn read_var(args: &crate::args::Args, read: &VarCommand) -> Result<(), Zerr>
     // Handle different output formats:
     match read.output {
         ReadOutputFormat::Raw => match target {
-            serde_json::Value::String(s) => println!("{}", s),
+            serde_json::Value::String(s) => println!("{s}"),
             target => println!(
                 "{}",
                 serde_json::to_string(&target).change_context(Zerr::InternalError)?

@@ -1,9 +1,6 @@
 use std::path::Path;
 
-use bitbazaar::{
-    cli::{Bash, BashErr},
-    timeit,
-};
+use bitbazaar::cli::{Bash, BashErr};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -12,6 +9,7 @@ use crate::{
         parent_state::{store_parent_state, CACHED_STATE_ENV_VAR},
         State,
     },
+    timeit,
 };
 
 pub static IN_TASK_ENV_VAR: &str = "ZETCH_IN_TASK";
@@ -27,7 +25,11 @@ pub struct Task {
 
 impl Task {
     /// Run the task, post tasks will be given the env var to the post ctx path.
-    fn run(&self, config_filepath: &Path, cached_config_loc: Option<&Path>) -> Result<(), Zerr> {
+    fn run(
+        &self,
+        config_filepath: &Path,
+        cached_config_loc: Option<&Path>,
+    ) -> Result<(), Report<Zerr>> {
         // Make sure no recursion:
         if parent_task_active() {
             return Err(zerr!(
@@ -64,9 +66,7 @@ impl Task {
             bash = bash.cmd(command);
         }
 
-        let cmd_out = match timeit!(format!("Cmd ({})", pre_or_post_str).as_str(), {
-            bash.run()
-        }) {
+        let cmd_out = match timeit!(format!("Cmd ({pre_or_post_str})").as_str(), { bash.run() }) {
             Ok(cmd_out) => Ok(cmd_out),
             Err(e) => match e.current_context() {
                 BashErr::InternalError(_) => Err(e.change_context(Zerr::InternalError)),
@@ -89,14 +89,14 @@ pub struct Tasks {
 
 impl Tasks {
     /// Run the pre tasks that are given no special environment:
-    pub fn run_pre(&self, config_filepath: &Path) -> Result<(), Zerr> {
+    pub fn run_pre(&self, config_filepath: &Path) -> Result<(), Report<Zerr>> {
         for task in self.pre.iter() {
             task.run(config_filepath, None)?;
         }
         Ok(())
     }
 
-    pub fn run_post(&self, conf: &State) -> Result<(), Zerr> {
+    pub fn run_post(&self, conf: &State) -> Result<(), Report<Zerr>> {
         // Will cache the config so subcommands using it will work.
         let path_buf = store_parent_state(conf)?;
         let path = path_buf.as_path();

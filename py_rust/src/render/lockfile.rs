@@ -4,7 +4,6 @@ use std::{
     path::PathBuf,
 };
 
-use bitbazaar::timeit;
 use sha2::{digest::generic_array::GenericArray, Digest, Sha256};
 use tracing::{debug, warn};
 
@@ -34,14 +33,16 @@ pub fn hash_contents(contents: &str) -> String {
     hasher.update(contents.as_bytes());
     let mut out = GenericArray::default();
     hasher.finalize_into_reset(&mut out);
-    format!("{:x}", out)
+    format!("{out:x}")
 }
 
 pub struct Lockfile {
     filepath: PathBuf,
     seen_template_paths: HashSet<String>,
     contents: Contents,
-    pub newly_created: bool,
+    // Modified at the moment is the same as newly_created,
+    // but during template additions modified may become different:
+    pub _newly_created: bool,
     pub modified: bool,
 }
 
@@ -116,8 +117,7 @@ impl Lockfile {
             filepath,
             contents,
             seen_template_paths: HashSet::new(),
-            // Modified at the moment is the same as newly_created, but during template additions modified may become different:
-            newly_created,
+            _newly_created: newly_created,
             modified,
         }
     }
@@ -129,7 +129,7 @@ impl Lockfile {
         &mut self,
         template: &template::Template,
         compiled: String,
-    ) -> Result<bool, Zerr> {
+    ) -> Result<bool, Report<Zerr>> {
         // To prevent bloating the filesize and readability of the lockfile, only include a hash of the compiled template rather than the full contents. (sha-256)
         let hashed = timeit!("Hashing compiled files for lockfile", {
             hash_contents(&compiled)
@@ -176,7 +176,7 @@ impl Lockfile {
     }
 
     /// After all compiled templates have been added, run this to close out and save the lockfile.
-    pub fn sync(&mut self) -> Result<(), Zerr> {
+    pub fn sync(&mut self) -> Result<(), Report<Zerr>> {
         let before_len = self.contents.files.len();
         // Anything which isn't in the new compiled set should be removed from the lockfile:
         self.contents

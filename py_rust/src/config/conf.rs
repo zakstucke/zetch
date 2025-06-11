@@ -45,7 +45,7 @@ impl Config {
         keys
     }
 
-    pub fn from_toml(config_path: &Path) -> Result<Self, Zerr> {
+    pub fn from_toml(config_path: &Path) -> Result<Self, Report<Zerr>> {
         Config::from_toml_inner(config_path).attach_printable_lazy(|| {
             format!(
                 "Error reading config file from '{}'.",
@@ -54,7 +54,7 @@ impl Config {
         })
     }
 
-    fn from_toml_inner(config_path: &Path) -> Result<Self, Zerr> {
+    fn from_toml_inner(config_path: &Path) -> Result<Self, Report<Zerr>> {
         let contents = autoupdate(config_path)?;
 
         // Decode directly the toml directly into serde/json, using that internally:
@@ -86,7 +86,7 @@ impl Config {
 /// Reads & pre-parses the config and updates managed sections, returns updated to save and use if changes needed.
 ///
 /// E.g. currently just updates the schema directive if needs changing.
-fn autoupdate(config_path: &Path) -> Result<String, Zerr> {
+fn autoupdate(config_path: &Path) -> Result<String, Report<Zerr>> {
     let mut contents = fs::read_to_string(config_path).change_context(Zerr::InternalError)?;
     let mut updated = false;
 

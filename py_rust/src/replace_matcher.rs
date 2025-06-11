@@ -5,7 +5,10 @@ use crate::{args::ReplaceMatcherCommand, prelude::*, state::State};
 /// Search the current directory for all template files (using the old matcher), replace the filename with the new matcher.
 ///
 /// Will show all files that will be renamed and prompt for confirmation before renaming.
-pub fn replace(args: &crate::args::Args, replace_args: &ReplaceMatcherCommand) -> Result<(), Zerr> {
+pub fn replace(
+    args: &crate::args::Args,
+    replace_args: &ReplaceMatcherCommand,
+) -> Result<(), Report<Zerr>> {
     let root = PathBuf::from(".");
     let state = State::new(args)?;
 

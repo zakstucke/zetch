@@ -14,7 +14,7 @@ pub enum FileType {
 pub static VALID_FILE_EXTS_AND_OPTS: &[&str] = &["json", "yaml", "yml", "toml"];
 
 impl FileType {
-    fn validate_file(&self, contents: &str) -> Result<(), Zerr> {
+    fn validate_file(&self, contents: &str) -> Result<(), Report<Zerr>> {
         match self {
             FileType::Json => {
                 // Using fjson rather than serde to allow c-style comments in json files:
@@ -42,9 +42,9 @@ pub fn valid_ft_opts_str() -> String {
     let mut s = "".to_string();
     for (index, ft) in VALID_FILE_EXTS_AND_OPTS.iter().enumerate() {
         if index == VALID_FILE_EXTS_AND_OPTS.len() - 1 {
-            s.push_str(&format!("or '--{}'", ft));
+            s.push_str(&format!("or '--{ft}'"));
         } else {
-            s.push_str(&format!("'--{}', ", ft));
+            s.push_str(&format!("'--{ft}', "));
         }
     }
     s
@@ -56,7 +56,7 @@ pub fn get_filetype(
     sargs: &FileSharedArgs,
     file_contents: &str,
     source: &Source,
-) -> Result<FileType, Zerr> {
+) -> Result<FileType, Report<Zerr>> {
     let ft = if [sargs.json, sargs.yaml, sargs.toml]
         .iter()
         .filter(|x| **x)
@@ -137,7 +137,7 @@ pub fn get_filetype(
                         "{:?}: {}",
                         ft,
                         if let Some(err) = maybe_err {
-                            format!("parsing failed: {:?}", err)
+                            format!("parsing failed: {err:?}")
                         } else {
                             "valid".to_string()
                         }

@@ -28,7 +28,7 @@ pub struct StoredParentState {
 /// Cache the config in a temporary file, used in e.g. subcommands that might read the config.
 ///
 /// Returns the PathBuf to the temporary file.
-pub fn store_parent_state(state: &State) -> Result<PathBuf, Zerr> {
+pub fn store_parent_state(state: &State) -> Result<PathBuf, Report<Zerr>> {
     let stored_state = StoredParentState {
         conf: state.conf.clone(),
         ctx: state.ctx.clone(),
@@ -44,7 +44,7 @@ pub fn store_parent_state(state: &State) -> Result<PathBuf, Zerr> {
 }
 
 /// Load the cached state if it's available, return None otherwise.
-pub fn load_parent_state() -> Result<Option<StoredParentState>, Zerr> {
+pub fn load_parent_state() -> Result<Option<StoredParentState>, Report<Zerr>> {
     // If not in a task, parent state shouldn't be set or used:
     if !parent_task_active() {
         return Ok(None);

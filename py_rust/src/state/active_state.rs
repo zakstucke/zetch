@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use bitbazaar::timeit;
 use parking_lot::Mutex;
 use tempfile::NamedTempFile;
 
@@ -37,7 +36,7 @@ impl State {
     /// Creates initial state for the command.
     /// This will not process any context by default. It may not be needed.
     /// Will automatically run the pre-tasks if needed.
-    pub fn new(args: &crate::args::Args) -> Result<State, Zerr> {
+    pub fn new(args: &crate::args::Args) -> Result<State, Report<Zerr>> {
         // If running as a subprocess of a zetch command and is applicable (i.e. in a post task),
         // then use some of its state (ctx/config) to prevent recursion errors and avoid unnecessary processing):
         let state = if let Some(parent_shared_state) = load_parent_state()? {
@@ -108,7 +107,7 @@ impl State {
         &mut self,
         var: &str,
         default_banned: bool, // TODO want to internalise into state
-    ) -> Result<&serde_json::Value, Zerr> {
+    ) -> Result<&serde_json::Value, Report<Zerr>> {
         // If already exists use:
         if self.ctx.contains_key(var) {
             return Ok(self.ctx.get(var).unwrap());
@@ -141,7 +140,7 @@ impl State {
             }
         }
         .change_context(Zerr::ContextLoadError)
-        .attach_printable_lazy(|| format!("Ctx var: '{}'", var))?;
+        .attach_printable_lazy(|| format!("Ctx var: '{var}'"))?;
 
         // Add to ctx and return reference:
         self.ctx.insert(var.to_string(), new_value);
@@ -149,7 +148,7 @@ impl State {
     }
 
     /// Load all context vars.
-    pub fn load_all_vars(&mut self) -> Result<(), Zerr> {
+    pub fn load_all_vars(&mut self) -> Result<(), Report<Zerr>> {
         timeit!(
             "Context value extraction (including user task & cli env scripting)",
             {
@@ -263,7 +262,7 @@ impl State {
                         let final_config_path = self.final_config_path.to_path_buf();
                         let var = var.clone();
                         handles.push(std::thread::spawn(
-                            move || -> Result<(String, serde_json::Value), Zerr> {
+                            move || -> Result<(String, serde_json::Value), Report<Zerr>> {
                                 timeit!(format!("Cli var processing: '{}'", &key).as_str(), {
                                     Ok((key, var.read(&final_config_path)?))
                                 })
@@ -281,7 +280,7 @@ impl State {
                         Err(thread_err) => {
                             return Err(
                                 zerr!(Zerr::InternalError, "Error reading thread result.",)
-                                    .attach_printable(format!("Thread error: {:?}", thread_err)),
+                                    .attach_printable(format!("Thread error: {thread_err:?}")),
                             );
                         }
                     }
@@ -297,7 +296,10 @@ impl State {
 
 /// Get the final config path, errors if path doesn't exist.
 /// For render subcommand usage, if the config path is relative and doesn't exist to run directory, will also check relative to root directory.
-fn build_final_config_path(base_path: &Path, render_root: Option<&Path>) -> Result<PathBuf, Zerr> {
+fn build_final_config_path(
+    base_path: &Path,
+    render_root: Option<&Path>,
+) -> Result<PathBuf, Report<Zerr>> {
     if base_path.exists() {
         return Ok(base_path.to_path_buf());
     }

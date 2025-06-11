@@ -14,7 +14,7 @@ pub fn handle_put(
     ft: FileType,
     file_contents: String,
     source: Source,
-) -> Result<(), Zerr> {
+) -> Result<(), Report<Zerr>> {
     let mut manager = langs::Manager::new(ft, &file_contents)?;
     let to_write_val = coerce(&serde_json::Value::String(fargs.put.clone()), &fargs.coerce)?;
     let to_write_json = serde_json::to_string(&to_write_val).change_context(Zerr::InternalError)?;
@@ -44,7 +44,7 @@ pub fn handle_put(
                                 path.len() - 1,
                                 trav.active_as_serde()?
                             )
-                            .attach_printable(format!("Array index '{}' is out of bounds.", key)));
+                            .attach_printable(format!("Array index '{key}' is out of bounds.")));
                         }
                     }
 

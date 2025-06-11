@@ -48,13 +48,18 @@ impl Context for Zerr {}
 /// E.g. `zerr!(Zerr::ReadConfigError, "Failed to read config file: {}", e)`
 #[macro_export]
 macro_rules! zerr {
+    ($zerr_varient:expr) => {{
+        use error_stack::Report;
+        use $crate::error::Zerr;
+
+        Report::new($zerr_varient)
+    }};
     ($zerr_varient:expr, $str:expr) => {{
         use error_stack::Report;
         use $crate::error::Zerr;
 
         Report::new($zerr_varient).attach_printable($str)
     }};
-
     ($zerr_varient:expr, $str:expr, $($arg:expr),*) => {{
         use error_stack::Report;
         use $crate::error::Zerr;

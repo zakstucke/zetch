@@ -1,8 +1,6 @@
 #[allow(unused_imports)]
-pub use bitbazaar::panic_on_err;
-#[allow(unused_imports)]
-pub use error_stack::{Result, ResultExt};
+pub use error_stack::{Report, ResultExt};
 #[allow(unused_imports)]
 pub use tracing::{debug, error, info, warn};
 
-pub use crate::{error::Zerr, zerr, zerr_int};
+pub use crate::{error::Zerr, timeit, utils::timing::GLOBAL_TIME_RECORDER, zerr, zerr_int};

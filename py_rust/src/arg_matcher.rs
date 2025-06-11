@@ -5,7 +5,7 @@ use crate::{
     read_write, render, replace_matcher, var,
 };
 
-pub fn arg_matcher(arg: args::Args) -> Result<(), Zerr> {
+pub fn arg_matcher(arg: args::Args) -> Result<(), Report<Zerr>> {
     match &arg.command {
         args::Command::Render(render) => {
             render::render(&arg, render)?;

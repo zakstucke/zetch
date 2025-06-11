@@ -1,4 +1,4 @@
-maturin==1.4.0
+maturin==1.8.6
 typing-extensions==4.9.0
 pyright==1.1.351
 pytest==8.0.1

@@ -14,31 +14,32 @@ path = "src/lib.rs"
 
 # Add your dependencies here
 [dependencies]
-colored = '2'
+colored = '3'
 tracing = "0.1"
-error-stack = "0.4"
-bitbazaar = { version = "0.0.38", features = ["cli", "timing"] }
-pyo3 = { version = '0.20.0', features = ['extension-module', 'chrono', 'generate-import-lib'] }
-parking_lot = { version = "0.12", features = ['deadlock_detection', 'serde'] }
-strum = { version = '0.25', features = ['derive'] }
+comfy-table = "7.1"
+error-stack = "0.5"
+bitbazaar = { version = "0.8.0", features = ["cli"] }
+pyo3 = { version = '0.23', features = ['extension-module', 'chrono', 'generate-import-lib'] }
+# TODO re-add deadlock_detection
+parking_lot = { version = "0.12", features = ['serde'] }
+strum = { version = '0.27', features = ['derive'] }
 clap = { version = "4.4", features = ["derive", "string"] }
 chrono = '0.4.31'
 fjson = '0.3.1'
 ignore = '0.4.21'
-json-patch = '1.2.0'
 once_cell = '1.18.0'
-pythonize = '0.20.0'
+pythonize = '0.23'
 regex = '1.10.2'
 serde_json = '1.0.108'
 serde_yaml = '0.9.31'
 sha2 = '0.10.8'
 tempfile = '3.9.0'
 toml = '0.8.8'
-toml_edit = '0.21.0'
+toml_edit = '0.22'
 valico = '4.0.0'
 serde = { version = '1.0', features = ['derive', 'rc'] }
 tokio = { version = "1.35", features = ['macros', 'sync', 'signal', 'rt'] }
-minijinja = { version = '1.0.10', features = [
+minijinja = { version = '2', features = [
   'loader',
   'custom_syntax',
   'preserve_order',
@@ -46,7 +47,10 @@ minijinja = { version = '1.0.10', features = [
   'urlencode',
   'debug',
 ] }
-minijinja-contrib = { version = '1.0.10', features = ['datetime'] }
+minijinja-contrib = { version = '2', features = ['datetime'] }
+
+[dev-dependencies]
+rstest = "0.25"
 
 [profile.profiler]
 inherits = "release" # Adds on top of the default release profile

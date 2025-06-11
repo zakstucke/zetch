@@ -12,7 +12,7 @@ pub fn handle_delete(
     ft: FileType,
     file_contents: String,
     source: Source,
-) -> Result<(), Zerr> {
+) -> Result<(), Report<Zerr>> {
     let mut manager = langs::Manager::new(ft, &file_contents)?;
 
     // To reaccess root to compile, need to drop traverser, hence block:

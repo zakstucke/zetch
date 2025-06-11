@@ -8,7 +8,7 @@ use crate::{coerce::Coerce, prelude::*};
 pub static DEFAULT_CONFIG_PATH: &str = "./zetch.config.toml";
 
 /// Get the args from python rather than rust, works better:
-pub fn get_py_args() -> Result<Vec<String>, Zerr> {
+pub fn get_py_args() -> Result<Vec<String>, Report<Zerr>> {
     Python::with_gil(|py| py.import("sys")?.getattr("argv")?.extract::<Vec<String>>())
         .change_context(Zerr::InternalError)
 }
@@ -32,7 +32,7 @@ pub fn get_version_info() -> String {
     match inner() {
         Ok(s) => s,
         Err(e) => {
-            format!("Failed to get version info: {}", e)
+            format!("Failed to get version info: {e}")
         }
     }
 }

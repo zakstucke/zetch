@@ -41,7 +41,7 @@ impl<'a> From<&'a DelCommand> for FileCommand<'a> {
     }
 }
 
-pub fn handle_file_cmd(args: &crate::args::Args, fargs: FileCommand) -> Result<(), Zerr> {
+pub fn handle_file_cmd(args: &crate::args::Args, fargs: FileCommand) -> Result<(), Report<Zerr>> {
     let sargs = fargs.shared();
 
     let mut source = Source::new(&sargs.source)?;

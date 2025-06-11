@@ -45,9 +45,9 @@ impl<'t> From<&'t mut Table> for Active<'t> {
 }
 
 impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
-    fn active(&self) -> Result<TravNode, Zerr> {
+    fn active(&self) -> Result<TravNode, Report<Zerr>> {
         self.with_active(|active| {
-            let handle_val = |val: &Value| -> Result<TravNode, Zerr> {
+            let handle_val = |val: &Value| -> Result<TravNode, Report<Zerr>> {
                 Ok(match val {
                     Value::Array(_) => TravNode::Array,
                     Value::InlineTable(_) => TravNode::Object,
@@ -70,8 +70,8 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn active_as_serde(&self) -> Result<serde_json::Value, Zerr> {
-        self.with_active(|active| -> Result<serde_json::Value, Zerr> {
+    fn active_as_serde(&self) -> Result<serde_json::Value, Report<Zerr>> {
+        self.with_active(|active| -> Result<serde_json::Value, Report<Zerr>> {
             Ok(match &active.inner {
                 Inner::Item(item) => item_to_serde(item)?,
                 Inner::Value(val) => value_to_serde(val)?,
@@ -80,7 +80,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn array_enter(&self, index: usize) -> Result<(), Zerr> {
+    fn array_enter(&self, index: usize) -> Result<(), Report<Zerr>> {
         self.replace_active(|active| {
             macro_rules! handle_arr {
                 ($arr:expr) => {
@@ -100,7 +100,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
                 };
             }
 
-            let handle_val = |val: &'t mut Value| -> Result<Active<'t>, Zerr> {
+            let handle_val = |val: &'t mut Value| -> Result<Active<'t>, Report<Zerr>> {
                 match val {
                     toml_edit::Value::Array(arr) => {
                         handle_arr!(arr)
@@ -121,7 +121,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn array_set_index(&self, index: usize, json_str: &'r str) -> Result<(), Zerr> {
+    fn array_set_index(&self, index: usize, json_str: &'r str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             macro_rules! handle_val {
                 ($val:expr) => {{
@@ -182,7 +182,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn array_len(&self) -> Result<usize, Zerr> {
+    fn array_len(&self) -> Result<usize, Report<Zerr>> {
         self.with_active(|active| match &active.inner {
             Inner::Value(val) => match val {
                 toml_edit::Value::Array(arr) => Ok(arr.len()),
@@ -200,7 +200,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn array_push(&self, json_str: &'r str) -> Result<(), Zerr> {
+    fn array_push(&self, json_str: &'r str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             macro_rules! handle_val {
                 ($val:expr) => {
@@ -237,7 +237,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn array_delete_index(&self, index: usize) -> Result<(), Zerr> {
+    fn array_delete_index(&self, index: usize) -> Result<(), Report<Zerr>> {
         self.with_active(|active| match active.inner.borrow_mut() {
             Inner::Value(val) => match val {
                 toml_edit::Value::Array(arr) => {
@@ -264,7 +264,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn object_enter(&self, key: &str) -> Result<(), Zerr> {
+    fn object_enter(&self, key: &str) -> Result<(), Report<Zerr>> {
         self.replace_active(|active| {
             macro_rules! handle_obj {
                 ($obj:expr) => {
@@ -276,7 +276,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
                 };
             }
 
-            let handle_val = |val: &'t mut Value| -> Result<Active<'t>, Zerr> {
+            let handle_val = |val: &'t mut Value| -> Result<Active<'t>, Report<Zerr>> {
                 match val {
                     toml_edit::Value::InlineTable(table) => {
                         handle_obj!(table)
@@ -298,9 +298,9 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn object_key_exists(&self, key: &str) -> Result<bool, Zerr> {
+    fn object_key_exists(&self, key: &str) -> Result<bool, Report<Zerr>> {
         self.with_active(|active| {
-            let handle_val = |val: &Value| -> Result<bool, Zerr> {
+            let handle_val = |val: &Value| -> Result<bool, Report<Zerr>> {
                 match val {
                     toml_edit::Value::InlineTable(table) => Ok(table.get(key).is_some()),
                     _ => Err(zerr_int!()),
@@ -320,7 +320,7 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn object_set_key(&self, key: &'r str, json_str: &'r str) -> Result<(), Zerr> {
+    fn object_set_key(&self, key: &'r str, json_str: &'r str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             let raw_new_val = serde_to_value(
                 serde_json::from_str(json_str).change_context(Zerr::InternalError)?,
@@ -341,11 +341,14 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
             macro_rules! replace {
                 ($table:expr, $new_obj:expr) => {
                     // Keys in tables also have decor, maintain that if replacing:
-                    let old_key_decor = $table.key_decor(key).cloned();
+                    let old_key_decor = $table
+                        .key_mut(key)
+                        .map(|k| (k.leaf_decor().clone(), k.dotted_decor().clone()));
                     $table.insert(key, $new_obj);
-                    if let Some(old_key_decor) = old_key_decor {
-                        if let Some(new_key_decor) = $table.key_decor_mut(key) {
-                            *new_key_decor = old_key_decor;
+                    if let Some((old_leaf_decor, old_dotted_decor)) = old_key_decor {
+                        if let Some(mut new_key) = $table.key_mut(key) {
+                            *new_key.leaf_decor_mut() = old_leaf_decor;
+                            *new_key.dotted_decor_mut() = old_dotted_decor;
                         }
                     }
                 };
@@ -380,9 +383,9 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn object_delete_key(&self, key: &str) -> Result<(), Zerr> {
+    fn object_delete_key(&self, key: &str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
-            let handle_val = |val: &mut Value| -> Result<(), Zerr> {
+            let handle_val = |val: &mut Value| -> Result<(), Report<Zerr>> {
                 match val {
                     toml_edit::Value::InlineTable(table) => {
                         table.remove(key);
@@ -411,12 +414,12 @@ impl<'t, 'r> Traversable<'r> for TomlTraverser<'t> {
         })
     }
 
-    fn finish(&self) -> Result<(), Zerr> {
+    fn finish(&self) -> Result<(), Report<Zerr>> {
         Ok(())
     }
 }
 
-fn value_to_serde(value: &Value) -> Result<serde_json::Value, Zerr> {
+fn value_to_serde(value: &Value) -> Result<serde_json::Value, Report<Zerr>> {
     Ok(match value {
         Value::String(s) => serde_json::Value::String(s.value().clone()),
         Value::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i.value())),
@@ -448,7 +451,7 @@ fn value_to_serde(value: &Value) -> Result<serde_json::Value, Zerr> {
 }
 
 // Convert a value to a table (not an inline one, a proper one), raising a user error if its not possible.
-fn serde_to_table(val: serde_json::Value) -> Result<Table, Zerr> {
+fn serde_to_table(val: serde_json::Value) -> Result<Table, Report<Zerr>> {
     Ok(match val {
         serde_json::Value::Object(obj) => {
             let mut table = Table::new();
@@ -464,7 +467,7 @@ fn serde_to_table(val: serde_json::Value) -> Result<Table, Zerr> {
     })
 }
 
-fn item_to_serde(item: &Item) -> Result<serde_json::Value, Zerr> {
+fn item_to_serde(item: &Item) -> Result<serde_json::Value, Report<Zerr>> {
     Ok(match item {
         Item::None => serde_json::Value::Null,
         Item::Value(val) => value_to_serde(val)?,
@@ -489,7 +492,7 @@ fn item_to_serde(item: &Item) -> Result<serde_json::Value, Zerr> {
     })
 }
 
-pub fn serde_to_value(val: serde_json::Value) -> Result<Value, Zerr> {
+pub fn serde_to_value(val: serde_json::Value) -> Result<Value, Report<Zerr>> {
     Ok(match val {
         // User error as null can't be represented in toml:
         serde_json::Value::Null => Err(zerr!(
