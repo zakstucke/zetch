@@ -1,6 +1,6 @@
 use crate::{args::RenderCommand, prelude::*};
 
-pub fn args_validate(args: &RenderCommand) -> Result<(), Zerr> {
+pub fn args_validate(args: &RenderCommand) -> Result<(), Report<Zerr>> {
     // Check the root path exists:
     if !args.root.exists() {
         return Err(zerr!(

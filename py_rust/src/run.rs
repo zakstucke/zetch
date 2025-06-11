@@ -1,4 +1,4 @@
-use bitbazaar::{log::GlobalLog, timing::GLOBAL_TIME_RECORDER};
+use bitbazaar::log::GlobalLog;
 use clap::{Parser, Subcommand};
 
 use crate::{
@@ -20,7 +20,7 @@ const ROOT_ARGS: &[&str] = &[
 ];
 const DEFAULT_SUBCOMMAND: &str = "render";
 
-pub fn run() -> Result<(), Zerr> {
+pub fn run() -> Result<(), Report<Zerr>> {
     let mut py_args = get_py_args()?;
 
     // Clap doesn't support default subcommands but we want to DEFAULT_SUBCOMMAND by

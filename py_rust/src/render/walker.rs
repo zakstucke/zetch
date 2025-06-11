@@ -7,7 +7,7 @@ use tracing::debug;
 use super::lockfile::LOCKFILE_NAME;
 use crate::{prelude::*, state::State};
 
-pub fn create(root: &Path, state: &State) -> Result<WalkBuilder, Zerr> {
+pub fn create(root: &Path, state: &State) -> Result<WalkBuilder, Report<Zerr>> {
     let mut builder = WalkBuilder::new(root);
     builder.git_exclude(false); // Don't auto read .git/info/exclude
     builder.git_global(false); // Don't auto use a global .gitignore file
@@ -51,7 +51,7 @@ pub fn create(root: &Path, state: &State) -> Result<WalkBuilder, Zerr> {
                 .to_string()
         } else {
             // Add a leading "!" to invert:
-            format!("!{}", trimmed)
+            format!("!{trimmed}")
         };
         overrider
             .add(&inverted)
@@ -64,7 +64,10 @@ pub fn create(root: &Path, state: &State) -> Result<WalkBuilder, Zerr> {
 }
 
 /// If config is inside root, return the relative path to it, otherwise return None.
-fn config_path_relative_to_root(root: &Path, config: &Path) -> Result<Option<PathBuf>, Zerr> {
+fn config_path_relative_to_root(
+    root: &Path,
+    config: &Path,
+) -> Result<Option<PathBuf>, Report<Zerr>> {
     // Make both absolute to start:
     let root = if root.is_relative() {
         root.canonicalize().change_context(Zerr::InternalError)?
@@ -92,11 +95,11 @@ fn config_path_relative_to_root(root: &Path, config: &Path) -> Result<Option<Pat
 }
 
 fn get_middle_regex(matcher: &str) -> Regex {
-    Regex::new(&format!(r"(.*)(\.{}\.)(.*)", matcher)).expect("Regex failed to compile")
+    Regex::new(&format!(r"(.*)(\.{matcher}\.)(.*)")).expect("Regex failed to compile")
 }
 
 fn get_end_regex(matcher: &str) -> Regex {
-    Regex::new(&format!(r"(.*)(\.{})$", matcher)).expect("Regex failed to compile")
+    Regex::new(&format!(r"(.*)(\.{matcher})$")).expect("Regex failed to compile")
 }
 
 fn try_regexes_and_rewrite(
@@ -123,7 +126,7 @@ pub fn find_templates(
     root: &Path,
     walker: WalkBuilder,
     matchers: &[String],
-) -> Result<Vec<super::template::Template>, Zerr> {
+) -> Result<Vec<super::template::Template>, Report<Zerr>> {
     let regex_pairs = matchers
         .iter()
         .map(|matcher| {
@@ -173,7 +176,7 @@ fn rewrite_template_matcher(
     middle_regex: &Regex,
     end_regex: &Regex,
     new_matcher: &str,
-) -> Result<String, Zerr> {
+) -> Result<String, Report<Zerr>> {
     let filename = if let Some(caps) = middle_regex.captures(filename) {
         format!(
             "{}.{}.{}",
@@ -201,7 +204,7 @@ pub fn get_template_matcher_rewrite_mapping(
     state: &State,
     old_matcher: &str,
     new_matcher: &str,
-) -> Result<Vec<(PathBuf, PathBuf)>, Zerr> {
+) -> Result<Vec<(PathBuf, PathBuf)>, Report<Zerr>> {
     let templates = find_templates(root, create(root, state)?, &[old_matcher.to_string()])?;
 
     let middle_regex = get_middle_regex(old_matcher);
@@ -234,5 +237,5 @@ pub fn get_template_matcher_rewrite_mapping(
                 )?);
             Ok((t.path, new_path))
         })
-        .collect::<Result<Vec<_>, Zerr>>()
+        .collect::<Result<Vec<_>, Report<Zerr>>>()
 }

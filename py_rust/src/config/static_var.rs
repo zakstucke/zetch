@@ -12,7 +12,7 @@ pub struct CtxStaticVar {
 }
 
 impl CtxStaticVar {
-    pub fn read(&self) -> Result<serde_json::Value, Zerr> {
+    pub fn read(&self) -> Result<serde_json::Value, Report<Zerr>> {
         coerce(&self.value, &self.coerce)
     }
 }

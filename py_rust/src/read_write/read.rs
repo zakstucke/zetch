@@ -12,7 +12,7 @@ pub fn handle_read(
     path: &[&str],
     ft: FileType,
     file_contents: String,
-) -> Result<(), Zerr> {
+) -> Result<(), Report<Zerr>> {
     let mut manager = langs::Manager::new(ft, &file_contents)?;
 
     let trav = manager.traverser()?;
@@ -25,7 +25,7 @@ pub fn handle_read(
                 if index >= trav.array_len()? {
                     return Err(
                         raise_invalid_path!(path, path.len() - 1, trav.active_as_serde()?)
-                            .attach_printable(format!("Array index '{}' is out of bounds.", key)),
+                            .attach_printable(format!("Array index '{key}' is out of bounds.")),
                     );
                 }
 
@@ -35,7 +35,7 @@ pub fn handle_read(
                 if !trav.object_key_exists(key)? {
                     return Err(
                         raise_invalid_path!(path, path.len() - 1, trav.active_as_serde()?)
-                            .attach_printable(format!("Object key '{}' does not exist.", key)),
+                            .attach_printable(format!("Object key '{key}' does not exist.")),
                     );
                 }
                 trav.object_enter(key)?;
@@ -57,7 +57,7 @@ pub fn handle_read(
     // Handle different output formats:
     match fargs.output {
         ReadOutputFormat::Raw => match as_serde {
-            serde_json::Value::String(s) => println!("{}", s),
+            serde_json::Value::String(s) => println!("{s}"),
             as_serde => println!(
                 "{}",
                 serde_json::to_string(&as_serde).change_context(Zerr::InternalError)?

@@ -14,7 +14,7 @@ pub enum Coerce {
     Bool,
 }
 
-pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Zerr> {
+pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Report<Zerr>> {
     // Always strip whitespace from string inputs:
     let value = match value {
         Value::String(s) => Value::String(s.trim().to_string()),
@@ -23,7 +23,7 @@ pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Zerr> {
 
     if let Some(c_type) = c_type {
         // Get a formatted version for the error case:
-        let stringified = format!("{:?}", value);
+        let stringified = format!("{value:?}");
 
         let result = match c_type {
             Coerce::Json => match value {

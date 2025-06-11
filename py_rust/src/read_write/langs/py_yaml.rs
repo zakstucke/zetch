@@ -1,4 +1,7 @@
-use pyo3::{prelude::*, types::PyDict};
+use pyo3::{
+    prelude::*,
+    types::{PyDict, PyTuple},
+};
 
 use crate::prelude::*;
 
@@ -9,12 +12,16 @@ pub enum YamlLoc {
     Index(usize),
 }
 
-impl IntoPy<PyObject> for YamlLoc {
-    fn into_py(self, py: Python<'_>) -> PyObject {
-        match self {
-            YamlLoc::Index(index) => index.into_py(py),
-            YamlLoc::Key(key) => key.into_py(py),
-        }
+impl<'py> IntoPyObject<'py> for YamlLoc {
+    type Target = PyAny; // the Python type
+    type Output = Bound<'py, Self::Target>; // in most cases this will be `Bound`
+    type Error = std::convert::Infallible;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        Ok(match self {
+            YamlLoc::Index(index) => index.into_pyobject(py)?.into_any(),
+            YamlLoc::Key(key) => key.into_pyobject(py)?.into_any(),
+        })
     }
 }
 
@@ -29,19 +36,23 @@ pub enum YamlUpdate {
     Put(Vec<YamlLoc>, String),
 }
 
-impl IntoPy<PyObject> for YamlUpdate {
-    fn into_py(self, py: Python<'_>) -> PyObject {
-        let mut items: Vec<PyObject> = vec![];
+impl<'py> IntoPyObject<'py> for YamlUpdate {
+    type Target = PyDict;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+        let mut items: Vec<Bound<PyTuple>> = vec![];
         let path = match self {
             YamlUpdate::Delete(path) => path,
             YamlUpdate::Put(path, data) => {
-                items.push(("put", data).into_py(py));
+                items.push(("put", data).into_pyobject(py)?);
                 path
             }
         };
-        items.push(("path", path).into_py(py));
-        if let Ok(dic) = PyDict::from_sequence(py, items.into_py(py)) {
-            dic.into_py(py)
+        items.push(("path", path).into_pyobject(py)?);
+        if let Ok(dic) = PyDict::from_sequence(&items.into_pyobject(py)?) {
+            Ok(dic.into_pyobject(py)?)
         } else {
             panic!("Error creating py_yaml update, could not build dictionary.")
         }
@@ -51,13 +62,13 @@ impl IntoPy<PyObject> for YamlUpdate {
 /// Delegate batched yaml updates to python ruamel.yaml library.
 ///
 /// The only library I've found that preserves comments!
-pub fn py_modify_yaml(src: String, updates: Vec<YamlUpdate>) -> Result<String, Zerr> {
+pub fn py_modify_yaml(src: String, updates: Vec<YamlUpdate>) -> Result<String, Report<Zerr>> {
     let bstr = Python::with_gil(|py| {
         let py_fn = py.import("zetch._yaml")?.getattr("modify_yaml")?;
 
         // Returns as a memoryview:
         py_fn
-            .call1((src, updates.into_py(py)))?
+            .call1((src, updates.into_pyobject(py)?))?
             .extract::<Vec<u8>>()
     })
     .change_context(Zerr::InternalError)?;

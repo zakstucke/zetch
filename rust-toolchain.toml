@@ -1,0 +1,3 @@
+# TODO change to stable once updated.
+[toolchain]
+channel = "nightly"

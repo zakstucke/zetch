@@ -459,7 +459,6 @@ def capitalize(s):
 # DONE init
 # DONE version
 # DONE setup that are run sequentially (e.g. npm i)
-# DONE get everything out into bitbazaar that's possible
 # DONE fixed branch locking
 # DONE fix the windows binary build, if saying usable by all then this will be needed.
 # DONE on config parsing, make sure the schema directive is at the correct version, update the config file if not

@@ -10,7 +10,7 @@ use crate::{
 
 enum Root<'r> {
     Json(fjson::ast::Root<'r>),
-    Toml(toml_edit::Document),
+    Toml(toml_edit::DocumentMut),
     Yaml(YamlRoot),
 }
 
@@ -19,14 +19,14 @@ pub struct Manager<'r> {
 }
 
 impl<'r> Manager<'r> {
-    pub fn new(ft: FileType, file_contents: &'r str) -> Result<Self, Zerr> {
+    pub fn new(ft: FileType, file_contents: &'r str) -> Result<Self, Report<Zerr>> {
         let root = match ft {
             FileType::Json => {
                 Root::Json(fjson::ast::parse(file_contents).change_context(Zerr::InternalError)?)
             }
             FileType::Toml => {
                 let root = file_contents
-                    .parse::<toml_edit::Document>()
+                    .parse::<toml_edit::DocumentMut>()
                     .change_context(Zerr::InternalError)?;
                 Root::Toml(root)
             }
@@ -36,7 +36,7 @@ impl<'r> Manager<'r> {
         Ok(Self { root })
     }
 
-    pub fn rewrite(&self) -> Result<String, Zerr> {
+    pub fn rewrite(&self) -> Result<String, Report<Zerr>> {
         match &self.root {
             Root::Json(root) => {
                 let mut jsonified = String::new();
@@ -49,7 +49,7 @@ impl<'r> Manager<'r> {
         }
     }
 
-    pub fn traverser<'t>(&'t mut self) -> Result<Box<dyn Traversable<'r> + 't>, Zerr> {
+    pub fn traverser<'t>(&'t mut self) -> Result<Box<dyn Traversable<'r> + 't>, Report<Zerr>> {
         Ok(match &mut self.root {
             Root::Json(root) => Box::new(JsonTraverser::new(&mut root.value.token)),
             Root::Toml(root) => {

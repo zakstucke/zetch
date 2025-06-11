@@ -8,7 +8,7 @@ use crate::{
 pub type JsonTraverser<'t, 'r> = Traverser<&'t mut ValueToken<'r>>;
 
 impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
-    fn active(&self) -> Result<TravNode, Zerr> {
+    fn active(&self) -> Result<TravNode, Report<Zerr>> {
         self.with_active(|active| match active {
             fjson::ast::ValueToken::Array(_) => Ok(TravNode::Array),
             fjson::ast::ValueToken::Object(_) => Ok(TravNode::Object),
@@ -16,7 +16,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn active_as_serde(&self) -> Result<serde_json::Value, Zerr> {
+    fn active_as_serde(&self) -> Result<serde_json::Value, Report<Zerr>> {
         let root = Root {
             meta_above: vec![],
             meta_below: vec![],
@@ -32,7 +32,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         serde_json::from_str(&jsonified).change_context(Zerr::InternalError)
     }
 
-    fn array_enter(&self, index: usize) -> Result<(), Zerr> {
+    fn array_enter(&self, index: usize) -> Result<(), Report<Zerr>> {
         self.replace_active(|active| {
             if let fjson::ast::ValueToken::Array(arr) = active {
                 let mut value_index = 0;
@@ -56,7 +56,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn array_set_index(&self, index: usize, json_str: &'r str) -> Result<(), Zerr> {
+    fn array_set_index(&self, index: usize, json_str: &'r str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Array(arr) = active {
                 let mut value_index = 0;
@@ -82,7 +82,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn array_len(&self) -> Result<usize, Zerr> {
+    fn array_len(&self) -> Result<usize, Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Array(arr) = active {
                 let mut value_index = 0;
@@ -98,7 +98,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn array_push(&self, json_str: &'r str) -> Result<(), Zerr> {
+    fn array_push(&self, json_str: &'r str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Array(arr) = active {
                 arr.push(fjson::ast::ArrayValue::ArrayVal(fjson::ast::Value {
@@ -112,7 +112,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn array_delete_index(&self, index: usize) -> Result<(), Zerr> {
+    fn array_delete_index(&self, index: usize) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Array(arr) = active {
                 let mut value_index = 0;
@@ -137,7 +137,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn object_enter(&self, key: &str) -> Result<(), Zerr> {
+    fn object_enter(&self, key: &str) -> Result<(), Report<Zerr>> {
         self.replace_active(|active| {
             if let fjson::ast::ValueToken::Object(obj) = active {
                 for info in obj.iter_mut() {
@@ -158,7 +158,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn object_key_exists(&self, key: &str) -> Result<bool, Zerr> {
+    fn object_key_exists(&self, key: &str) -> Result<bool, Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Object(obj) = active {
                 for info in obj.iter() {
@@ -175,7 +175,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn object_set_key(&self, key: &'r str, json_str: &'r str) -> Result<(), Zerr> {
+    fn object_set_key(&self, key: &'r str, json_str: &'r str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Object(obj) = active {
                 // Replace if already exists to keep ordering: (will return if replaced)
@@ -203,7 +203,7 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn object_delete_key(&self, key: &str) -> Result<(), Zerr> {
+    fn object_delete_key(&self, key: &str) -> Result<(), Report<Zerr>> {
         self.with_active(|active| {
             if let fjson::ast::ValueToken::Object(obj) = active {
                 for (index, info) in obj.iter_mut().enumerate() {
@@ -225,12 +225,12 @@ impl<'t, 'r> Traversable<'r> for JsonTraverser<'t, 'r> {
         })
     }
 
-    fn finish(&self) -> Result<(), Zerr> {
+    fn finish(&self) -> Result<(), Report<Zerr>> {
         Ok(())
     }
 }
 
-fn json_str_to_token(json_str: &str) -> Result<ValueToken<'_>, Zerr> {
+fn json_str_to_token(json_str: &str) -> Result<ValueToken<'_>, Report<Zerr>> {
     let root = fjson::ast::parse(json_str).change_context(Zerr::InternalError)?;
     Ok(root.value.token)
 }

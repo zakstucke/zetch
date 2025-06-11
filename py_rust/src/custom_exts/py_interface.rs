@@ -9,7 +9,7 @@ use parking_lot::Mutex;
 use pyo3::{
     exceptions::PyValueError,
     prelude::*,
-    types::{PyDict, PyList, PyTuple},
+    types::{PyDict, PyTuple},
 };
 use pythonize::pythonize;
 
@@ -20,10 +20,10 @@ static PY_USER_FUNCS: Lazy<Mutex<HashMap<String, PyObject>>> = Lazy::new(Mutex::
 
 #[pyfunction]
 #[pyo3(name = "register_function")]
-pub fn py_register_function(py: Python, py_fn: &PyAny) -> PyResult<()> {
+pub fn py_register_function(py: Python, py_fn: Bound<PyAny>) -> PyResult<()> {
     match register_py_func(py, py_fn) {
         Ok(_) => Ok(()),
-        Err(e) => Err(PyValueError::new_err(format!("{:?}", e))),
+        Err(e) => Err(PyValueError::new_err(format!("{e:?}"))),
     }
 }
 
@@ -41,7 +41,10 @@ pub fn py_context(py: Python) -> PyResult<PyObject> {
     }
 }
 
-pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String, PyObject>, Zerr> {
+pub fn load_custom_exts(
+    exts: &[String],
+    state: &State,
+) -> Result<HashMap<String, PyObject>, Report<Zerr>> {
     // Don't touch python if unneeded:
     if exts.is_empty() {
         return Ok(HashMap::new());
@@ -58,23 +61,28 @@ pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String
             ));
         }
 
-        *py_ctx = Some(pythonize(py, &state.ctx).change_context(Zerr::InternalError)?);
+        *py_ctx = Some(
+            pythonize(py, &state.ctx)
+                .change_context(Zerr::InternalError)?
+                .into_pyobject(py)
+                .change_context(Zerr::InternalError)?
+                .into(),
+        );
 
-        let syspath: &PyList = py
+        let syspath_src = py
             .import("sys")
             .change_context(Zerr::InternalError)?
             .getattr("path")
-            .change_context(Zerr::InternalError)?
-            .downcast()
-            .map_err(|e| {
-                zerr!(
-                    Zerr::InternalError,
-                    "Failed to get sys.path whilst importing custom extension: '{}'",
-                    e
-                )
-            })?;
+            .change_context(Zerr::InternalError)?;
+        let syspath = syspath_src.downcast().map_err(|e| {
+            zerr!(
+                Zerr::InternalError,
+                "Failed to get sys.path whilst importing custom extension: '{}'",
+                e
+            )
+        })?;
         for extension_path in state.conf.engine.custom_extensions.iter() {
-            let result: Result<(), Zerr> = (|| {
+            let result: Result<(), Report<Zerr>> = (|| {
                 // Get the parent dir of the file/module:
                 let path = Path::new(extension_path);
                 let parent = path.parent().ok_or_else(|| {
@@ -104,13 +112,22 @@ pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String
                 syspath
                     .insert(0, parent)
                     .change_context(Zerr::InternalError)?;
+                // confirm the file exists:
+                if !path.exists() {
+                    return Err(zerr!(
+                        Zerr::InternalError,
+                        "Custom extension '{}' does not exist.",
+                        extension_path
+                    ));
+                }
+                // PyModule::import(py, extension_path).change_context(Zerr::InternalError)?;
                 py.import(name).change_context(Zerr::InternalError)?;
                 Ok(())
             })();
 
             if result.is_err() {
                 return result.attach_printable_lazy(|| {
-                    format!("Failed to import custom extension '{}'.", extension_path)
+                    format!("Failed to import custom extension '{extension_path}'.")
                 });
             }
         }
@@ -123,9 +140,9 @@ pub fn load_custom_exts(exts: &[String], state: &State) -> Result<HashMap<String
 }
 
 pub fn mini_values_to_py_params(
-    py: Python<'_>,
+    py: Python,
     values: minijinja::value::Rest<minijinja::Value>,
-) -> Result<(&PyTuple, Option<&PyDict>), Zerr> {
+) -> Result<(Bound<PyTuple>, Option<Bound<PyDict>>), Report<Zerr>> {
     // Loop over the values and extract the args and kwargs given to the func:
     let mut args = vec![];
     let mut kwargs: HashMap<String, minijinja::Value> = HashMap::new();
@@ -147,11 +164,12 @@ pub fn mini_values_to_py_params(
                 let py_val = pythonize(py, v).change_context(Zerr::InternalError)?;
                 Ok(py_val)
             })
-            .collect::<Result<Vec<_>, Zerr>>()?,
-    );
+            .collect::<Result<Vec<_>, Report<Zerr>>>()?,
+    )
+    .change_context(Zerr::InternalError)?;
 
     let py_kwargs = match kwargs.is_empty() {
-        true => Ok::<_, Zerr>(None),
+        true => Ok::<_, Report<Zerr>>(None),
         false => {
             let dic = PyDict::new(py);
             for (key, value) in kwargs {
@@ -166,7 +184,7 @@ pub fn mini_values_to_py_params(
     Ok((py_args, py_kwargs))
 }
 
-fn register_py_func(py: Python, py_fn: &PyAny) -> Result<(), Zerr> {
+fn register_py_func(py: Python, py_fn: Bound<PyAny>) -> Result<(), Report<Zerr>> {
     let (module_name, fn_name) = (|| -> core::result::Result<_, PyErr> {
         let module_name = py_fn.getattr("__module__")?.extract::<String>()?;
         let fn_name = py_fn.getattr("__name__")?.extract::<String>()?;
@@ -190,7 +208,12 @@ fn register_py_func(py: Python, py_fn: &PyAny) -> Result<(), Zerr> {
 
     // Raise error if something with the same name already registered:
     if let Entry::Vacant(e) = func_store.entry(fn_name.clone()) {
-        e.insert(py_fn.to_object(py));
+        e.insert(
+            py_fn
+                .into_pyobject(py)
+                .change_context(Zerr::InternalError)?
+                .into(),
+        );
     } else {
         return Err(zerr!(
             Zerr::CustomPyFunctionError,

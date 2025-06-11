@@ -1,4 +1,5 @@
 #![warn(clippy::disallowed_types)]
+#![allow(clippy::type_complexity)]
 
 use colored::Colorize;
 use pyo3::{exceptions::PyValueError, prelude::*};
@@ -42,7 +43,7 @@ pub fn cli() -> i32 {
             #[allow(clippy::print_stderr)]
             {
                 eprintln!("{}", "zetch failed".red().bold());
-                eprintln!("{:?}", e);
+                eprintln!("{e:?}");
             }
             1
         }
@@ -52,11 +53,11 @@ pub fn cli() -> i32 {
 /// Create a TOML string from a Python object, used by tests.
 #[pyfunction]
 #[pyo3(name = "_toml_create")]
-pub fn py_toml_create(data: &PyAny) -> PyResult<String> {
-    let decoded: serde_json::Value = depythonize(data)?;
+pub fn py_toml_create(data: Bound<PyAny>) -> PyResult<String> {
+    let decoded: serde_json::Value = depythonize(&data)?;
     match toml::to_string(&decoded) {
         Ok(s) => Ok(s),
-        Err(e) => Err(PyValueError::new_err(format!("{:?}", e))),
+        Err(e) => Err(PyValueError::new_err(format!("{e:?}"))),
     }
 }
 
@@ -71,18 +72,18 @@ pub fn py_hash_contents(contents: &str) -> PyResult<String> {
 /// import the module.
 #[pymodule]
 #[pyo3(name = "_rs")]
-fn root_module(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(cli, m)?)?;
+fn root_module(_py: Python, m: Bound<PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(cli, &m)?)?;
 
     m.add_function(wrap_pyfunction!(
         custom_exts::py_interface::py_register_function,
-        m
+        &m
     )?)?;
-    m.add_function(wrap_pyfunction!(custom_exts::py_interface::py_context, m)?)?;
+    m.add_function(wrap_pyfunction!(custom_exts::py_interface::py_context, &m)?)?;
 
-    m.add_function(wrap_pyfunction!(py_toml_create, m)?)?;
+    m.add_function(wrap_pyfunction!(py_toml_create, &m)?)?;
 
-    m.add_function(wrap_pyfunction!(py_hash_contents, m)?)?;
+    m.add_function(wrap_pyfunction!(py_hash_contents, &m)?)?;
 
     Ok(())
 }

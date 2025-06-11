@@ -29,9 +29,9 @@ impl InteractiveStdin {
     }
 }
 
-pub async fn confirm(prompt: &str) -> Result<bool, Zerr> {
+pub async fn confirm(prompt: &str) -> Result<bool, Report<Zerr>> {
     loop {
-        println!("\n{} Enter 'y' to confirm, 'n' to decline.", prompt);
+        println!("\n{prompt} Enter 'y' to confirm, 'n' to decline.");
 
         let shutdown = signal::ctrl_c();
         let mut stdin = InteractiveStdin::new();
@@ -58,7 +58,7 @@ pub async fn confirm(prompt: &str) -> Result<bool, Zerr> {
     }
 }
 
-pub fn sync_confirm(prompt: &str) -> Result<bool, Zerr> {
+pub fn sync_confirm(prompt: &str) -> Result<bool, Report<Zerr>> {
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()

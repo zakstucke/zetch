@@ -6,7 +6,7 @@ use crate::{
 };
 
 /// Initialize the config file in the current directory.
-pub fn init(_args: &InitCommand) -> Result<(), Zerr> {
+pub fn init(_args: &InitCommand) -> Result<(), Report<Zerr>> {
     // Raise if config file already exists:
     if PathBuf::from(&DEFAULT_CONFIG_PATH).exists() {
         return Err(zerr!(
@@ -61,7 +61,7 @@ pub fn update_schema_directive_if_needed(contents: &str) -> Option<String> {
             let cur_directive = get_schema_directive();
             if old_directive != cur_directive {
                 let mut new_contents: Vec<&str> = contents.lines().collect();
-                let replacement = format!("{}{}", SCHEMA_DIRECTIVE_PREFIX, cur_directive);
+                let replacement = format!("{SCHEMA_DIRECTIVE_PREFIX}{cur_directive}");
                 new_contents[index] = &replacement;
                 warn!(
                     "Found old config schema directive, updating from '{line}' to '{replacement}'."

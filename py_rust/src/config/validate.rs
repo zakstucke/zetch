@@ -9,7 +9,7 @@ use crate::prelude::*;
 // Include the schema in the binary to use at runtime:
 static JSON_SCHEMA: &str = include_str!(r"./schema.json");
 
-pub fn pre_validate(value: &serde_json::Value) -> Result<(), Zerr> {
+pub fn pre_validate(value: &serde_json::Value) -> Result<(), Report<Zerr>> {
     let state = run_against_schema(value)?;
     if !state.is_strictly_valid() {
         let mut report = zerr!(Zerr::ConfigInvalid, "Config validation failed.");
@@ -19,7 +19,7 @@ pub fn pre_validate(value: &serde_json::Value) -> Result<(), Zerr> {
 
         if !state.missing.is_empty() {
             for missing in state.missing {
-                report = report.attach_printable(format!("Missing: {}", missing));
+                report = report.attach_printable(format!("Missing: {missing}"));
             }
             report = report.change_context(Zerr::InternalError).attach_printable(
                 "Missing errors most likely an issue with the internal json schema for the config. First arose when task shared $def was improperly configured in json schema.",
@@ -33,7 +33,7 @@ pub fn pre_validate(value: &serde_json::Value) -> Result<(), Zerr> {
 }
 
 /// Extra validation & cleaning to do on the created config object.
-pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Zerr> {
+pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Report<Zerr>> {
     // Make sure at least one matcher has been provided:
     if conf.matchers.is_empty() {
         return Err(zerr!(
@@ -62,13 +62,13 @@ pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Zerr> 
     }
 
     // ignore_files and engine.custom_extensions should be resolved relative to the config file, so rewrite the paths if needed and make sure they exist:
-    let validate_and_rewrite = |in_path: String| -> Result<String, Zerr> {
+    let validate_and_rewrite = |in_path: String| -> Result<String, Report<Zerr>> {
         // Make relative to config file if not absolute:
         let path = if !PathBuf::from(&in_path).is_absolute() {
             config_path
                 .parent()
                 .unwrap()
-                .join(in_path)
+                .join(in_path.trim_start_matches("./"))
                 .to_str()
                 .unwrap()
                 .to_string()
@@ -147,14 +147,14 @@ fn format_err(err: Box<dyn valico::common::error::ValicoError>) -> String {
     let mut desc = info.to_string();
 
     if let Some(extra) = err_extra_property(&desc) {
-        desc = format!("Unknown property: '{}'.", extra);
+        desc = format!("Unknown property: '{extra}'.");
     } else if let Some(invalid_type) = err_invalid_type(&desc) {
         desc = format!(
             "Expected {}.",
             match invalid_type.as_str() {
                 "object" => "a table".to_string(),
                 "array" => "an array".to_string(),
-                _ => format!("a {}", invalid_type),
+                _ => format!("a {invalid_type}"),
             }
         );
     } else if desc.contains("Enum conditions are not met") && loc_parts.last() == Some(&"coerce") {
@@ -200,7 +200,7 @@ fn err_invalid_type(desc: &str) -> Option<String> {
 
 fn run_against_schema(
     json: &serde_json::Value,
-) -> Result<valico::json_schema::ValidationState, Zerr> {
+) -> Result<valico::json_schema::ValidationState, Report<Zerr>> {
     let json_schema: serde_json::Value =
         serde_json::from_str(JSON_SCHEMA).change_context(Zerr::InternalError)?;
     let mut scope = valico::json_schema::Scope::new();

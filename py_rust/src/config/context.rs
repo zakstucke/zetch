@@ -17,7 +17,11 @@ pub struct CtxEnvVar {
 }
 
 impl CtxEnvVar {
-    pub fn read(&self, key_name: &str, default_banned: bool) -> Result<serde_json::Value, Zerr> {
+    pub fn read(
+        &self,
+        key_name: &str,
+        default_banned: bool,
+    ) -> Result<serde_json::Value, Report<Zerr>> {
         let env_name = match &self.env_name {
             Some(env_name) => env_name,
             None => key_name,
@@ -59,7 +63,7 @@ pub struct CtxCliVar {
 }
 
 impl CtxCliVar {
-    pub fn read(&self, config_path: &Path) -> Result<serde_json::Value, Zerr> {
+    pub fn read(&self, config_path: &Path) -> Result<serde_json::Value, Report<Zerr>> {
         let config_dir = config_path.parent().ok_or_else(|| {
             zerr!(
                 Zerr::InternalError,

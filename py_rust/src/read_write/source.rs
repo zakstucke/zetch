@@ -11,7 +11,7 @@ pub enum Source {
 
 impl Source {
     /// Create the source from the string, which is either a filepath or the contents directly.
-    pub fn new(source: &str) -> Result<Self, Zerr> {
+    pub fn new(source: &str) -> Result<Self, Report<Zerr>> {
         // Try and workout whether a path or not:
         if let Some(pb) = as_file(source) {
             if !pb.exists() {
@@ -45,7 +45,7 @@ impl Source {
     }
 
     /// Consume the contents of the source.
-    pub fn read(&mut self) -> Result<String, Zerr> {
+    pub fn read(&mut self) -> Result<String, Report<Zerr>> {
         match self {
             Self::Value(s) => Ok(s
                 .take()
@@ -60,10 +60,10 @@ impl Source {
     /// "Write" the new value,
     /// if was passed in via console should be written to stdout,
     /// otherwise replace the contents of the file:
-    pub fn write(&self, contents: &str) -> Result<(), Zerr> {
+    pub fn write(&self, contents: &str) -> Result<(), Report<Zerr>> {
         match self {
             Self::Value(_) => {
-                println!("{}", contents);
+                println!("{contents}");
             }
             Self::File(p) => {
                 // Write to file:
