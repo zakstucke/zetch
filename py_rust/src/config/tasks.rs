@@ -1,15 +1,15 @@
 use std::path::Path;
 
-use bitbazaar::cli::{Bash, BashErr};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     prelude::*,
     state::{
-        parent_state::{store_parent_state, CACHED_STATE_ENV_VAR},
         State,
+        parent_state::{CACHED_STATE_ENV_VAR, store_parent_state},
     },
     timeit,
+    utils::cmd::run_cmd,
 };
 
 pub static IN_TASK_ENV_VAR: &str = "ZETCH_IN_TASK";
@@ -52,28 +52,17 @@ impl Task {
             )
         })?;
 
-        // Create the bash environment:
-        let mut bash = Bash::new().chdir(config_dir);
-        bash = bash.env(IN_TASK_ENV_VAR, "1");
+        let mut envvars = vec![];
+        envvars.push((IN_TASK_ENV_VAR, "1".to_string()));
         if let Some(cached_config_loc) = cached_config_loc {
-            bash = bash.env(
+            envvars.push((
                 CACHED_STATE_ENV_VAR,
                 cached_config_loc.display().to_string(),
-            );
+            ));
         }
-
-        for command in self.commands.iter() {
-            bash = bash.cmd(command);
-        }
-
-        let cmd_out = match timeit!(format!("Cmd ({pre_or_post_str})").as_str(), { bash.run() }) {
-            Ok(cmd_out) => Ok(cmd_out),
-            Err(e) => match e.current_context() {
-                BashErr::InternalError(_) => Err(e.change_context(Zerr::InternalError)),
-                _ => Err(e.change_context(Zerr::UserCommandError)),
-            },
-        }?;
-        cmd_out.throw_on_bad_code(Zerr::UserCommandError)?;
+        timeit!(format!("Cmd ({pre_or_post_str})").as_str(), {
+            run_cmd(config_dir, self.commands.as_slice(), &envvars)
+        })?;
 
         Ok(())
     }

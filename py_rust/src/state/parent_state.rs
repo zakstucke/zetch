@@ -10,7 +10,7 @@ use super::State;
 use crate::{
     config::{
         conf::Config,
-        tasks::{parent_task_active, IN_TASK_ENV_VAR},
+        tasks::{IN_TASK_ENV_VAR, parent_task_active},
     },
     prelude::*,
 };
@@ -58,7 +58,12 @@ pub fn load_parent_state() -> Result<Option<StoredParentState>, Report<Zerr>> {
                 serde_json::from_str(&contents).change_context(Zerr::InternalError)?;
             return Ok(Some(decoded));
         } else {
-            warn!("Nested zetch task seems to be running, tried loading parent state from {}, but it doesn't exist. You may have orphaned {}/{} environment variables.", path.display(), IN_TASK_ENV_VAR, CACHED_STATE_ENV_VAR);
+            warn!(
+                "Nested zetch task seems to be running, tried loading parent state from {}, but it doesn't exist. You may have orphaned {}/{} environment variables.",
+                path.display(),
+                IN_TASK_ENV_VAR,
+                CACHED_STATE_ENV_VAR
+            );
         }
     }
     Ok(None)

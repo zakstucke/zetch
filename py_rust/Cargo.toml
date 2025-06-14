@@ -1,11 +1,12 @@
 [package]
 name = "zetch"
 version = "0.0.16"
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 license = "MIT"
 # This crate should only be released as a python package, so disable any rust side crates publishing:
 publish = false
+rust-version = "1.85"
 
 [lib]
 name = "zetch"
@@ -18,10 +19,8 @@ colored = '3'
 tracing = "0.1"
 comfy-table = "7.1"
 error-stack = "0.5"
-bitbazaar = { version = "0.8.0", features = ["cli"] }
 pyo3 = { version = '0.23', features = ['extension-module', 'chrono', 'generate-import-lib'] }
-# TODO re-add deadlock_detection
-parking_lot = { version = "0.12", features = ['serde'] }
+parking_lot = { version = "0.12", features = ['serde', 'deadlock_detection'] }
 strum = { version = '0.27', features = ['derive'] }
 clap = { version = "4.4", features = ["derive", "string"] }
 chrono = '0.4.31'
@@ -48,6 +47,9 @@ minijinja = { version = '2', features = [
   'debug',
 ] }
 minijinja-contrib = { version = '2', features = ['datetime'] }
+nondestructive = "0.0.26"
+shell-words = "1.1.0"
+tracing-subscriber = { version = "0.3.19", features = ['env-filter'] }
 
 [dev-dependencies]
 rstest = "0.25"

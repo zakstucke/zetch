@@ -116,9 +116,9 @@ pub fn new_mini_env<'a>(
 fn custom_loader<'x, P: AsRef<Path> + 'x>(
     dir: P,
 ) -> impl for<'a> Fn(&'a str) -> core::result::Result<Option<String>, minijinja::Error>
-       + Send
-       + Sync
-       + 'static {
++ Send
++ Sync
++ 'static {
     let dir = dir.as_ref().to_path_buf();
     move |name| match fs::read_to_string(dir.join(name)) {
         Ok(result) => Ok(Some(result)),
@@ -133,8 +133,10 @@ fn custom_loader<'x, P: AsRef<Path> + 'x>(
 
 fn gen_env_default_fn(
     state: &State,
-) -> Result<impl Fn(String) -> core::result::Result<minijinja::Value, minijinja::Error>, Report<Zerr>>
-{
+) -> Result<
+    impl Fn(String) -> core::result::Result<minijinja::Value, minijinja::Error> + use<>,
+    Report<Zerr>,
+> {
     // Get a simple dict of available env vars to their defaults as minijinja::Value(s):
     let mut env_defaults = HashMap::new();
     for (key, value) in state.conf.context.env.iter() {
@@ -152,13 +154,13 @@ fn gen_env_default_fn(
                 .collect::<Vec<&str>>();
             env_keys.sort_by_key(|name| name.to_lowercase());
             Err(minijinja::Error::new(
-                    minijinja::ErrorKind::InvalidOperation,
-                    format!(
-                        "context.env var '{}' doesn't exist or doesn't have a default. All ctx env vars with defaults: '{}'.",
-                        name,
-                        env_keys.join(", ")
-                    ),
-                ))
+                minijinja::ErrorKind::InvalidOperation,
+                format!(
+                    "context.env var '{}' doesn't exist or doesn't have a default. All ctx env vars with defaults: '{}'.",
+                    name,
+                    env_keys.join(", ")
+                ),
+            ))
         }
     })
 }

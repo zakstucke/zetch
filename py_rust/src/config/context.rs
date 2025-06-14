@@ -1,12 +1,12 @@
 use std::{collections::HashMap, path::Path};
 
-use bitbazaar::cli::{Bash, BashErr};
 use serde::{Deserialize, Serialize};
 
 use super::static_var::CtxStaticVar;
 use crate::{
-    coerce::{coerce, Coerce},
+    coerce::{Coerce, coerce},
     prelude::*,
+    utils::cmd::run_cmd,
 };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -44,7 +44,7 @@ impl CtxEnvVar {
                                 Zerr::ContextLoadError,
                                 "Could not find environment variable '{}' and no default provided.",
                                 env_name
-                            ))
+                            ));
                         }
                     }
                 }
@@ -72,30 +72,25 @@ impl CtxCliVar {
             )
         })?;
 
-        let mut bash = Bash::new().chdir(config_dir);
-        for command in self.commands.iter() {
-            bash = bash.cmd(command);
-        }
-        let cmd_out = match bash.run() {
-            Ok(cmd_out) => Ok(cmd_out),
-            Err(e) => match e.current_context() {
-                BashErr::InternalError(_) => Err(e.change_context(Zerr::InternalError)),
-                _ => Err(e.change_context(Zerr::UserCommandError)),
-            },
-        }?;
-        cmd_out.throw_on_bad_code(Zerr::UserCommandError)?;
+        let cmd_out = run_cmd(config_dir, &self.commands, &[])?;
+        let last_stdout = cmd_out.last_stdout();
 
         // Prevent empty output:
-        let last_cmd_out = cmd_out.last_stdout();
-        if last_cmd_out.trim().is_empty() {
-            return Err(zerr!(
+        if last_stdout.trim().is_empty() {
+            let mut e = zerr!(
                 Zerr::UserCommandError,
                 "Implicit None. Final cli command returned nothing.",
-            )
-            .attach_printable(cmd_out.fmt_attempted_commands()));
+            );
+            for output in cmd_out.iter_formatted_commands_and_outputs() {
+                e = e.attach_printable(output);
+            }
+            return Err(e);
         }
 
-        coerce(&serde_json::Value::String(last_cmd_out), &self.coerce)
+        coerce(
+            &serde_json::Value::String(last_stdout.trim().to_string()),
+            &self.coerce,
+        )
     }
 }
 

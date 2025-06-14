@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{command, Parser};
+use clap::{Parser, command};
 use pyo3::prelude::*;
 
 use crate::{coerce::Coerce, prelude::*};

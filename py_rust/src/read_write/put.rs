@@ -60,7 +60,9 @@ pub fn handle_put(
                             let existing = match trav.active_as_serde()? {
                                 serde_json::Value::Array(mut arr) => arr.swap_remove(index),
                                 _ => {
-                                    return Err(zerr_int!("Couldn't extract existing array value."))
+                                    return Err(zerr_int!(
+                                        "Couldn't extract existing array value."
+                                    ));
                                 }
                             };
                             if existing != to_write_val {
@@ -96,7 +98,7 @@ pub fn handle_put(
                         path,
                         path.len() - 1,
                         trav.active_as_serde()?
-                    ))
+                    ));
                 }
             }
         }

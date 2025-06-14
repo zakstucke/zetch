@@ -1,4 +1,4 @@
-use super::py_yaml::{py_modify_yaml, YamlLoc, YamlUpdate};
+use super::py_yaml::{YamlLoc, YamlUpdate, py_modify_yaml};
 use crate::{
     prelude::*,
     read_write::traverser::{TravNode, Traversable, Traverser},

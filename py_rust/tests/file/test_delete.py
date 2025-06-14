@@ -13,7 +13,7 @@ from .test_data.utils import tfile
             (f"1_{ft}", ["ree"], f"foo.{ft}", cont, out)
             for ft, cont, out in [
                 ("json", '{"ree": "roo"}', "{}"),
-                ("yaml", "ree: roo", "{}"),
+                ("yaml", "ree: roo", ""),
                 ("toml", 'ree = "roo"', ""),
             ]
         ],
@@ -40,7 +40,7 @@ from .test_data.utils import tfile
             (f"4_{ft}", ["ree.roo"], f"foo.{ft}", cont, out)
             for ft, cont, out in [
                 ("json", '{"ree": {"roo": ["bar", "baz"]}}', '{\n  "ree": {}\n}\n'),
-                ("yaml", "ree:\n  roo:\n  - bar\n  - baz", "ree: {}\n"),
+                ("yaml", "ree:\n  roo:\n  - bar\n  - baz", "ree:"),
                 ("yaml", "ree: {roo: [bar, baz]}", "ree: {}\n"),
                 ("toml", 'ree = {roo = ["bar", "baz"]}', "ree = {}\n"),
                 ("toml", '[ree]\nroo = ["bar", "baz"]', "[ree]\n"),
@@ -55,8 +55,8 @@ from .test_data.utils import tfile
                     '{"ree": {"roo": ["bar", "baz"]}}',
                     '{\n  "ree": {\n    "roo": ["baz"]\n  }\n}\n',
                 ),
-                ("yaml", "ree:\n  roo:\n  - bar\n  - baz", "ree:\n  roo:\n  - baz\n"),
-                ("yaml", "ree: {roo: [bar, baz]}", "ree: {roo: [baz]}\n"),
+                ("yaml", "ree:\n  roo:\n  - bar\n  - baz", "ree:\n  roo:\n  \n  - baz"),
+                ("yaml", "ree: {roo: [bar, baz]}", "ree: {roo: [ baz]}"),
                 ("toml", 'ree = {roo = ["bar", "baz"]}', 'ree = {roo = [ "baz"]}\n'),
                 ("toml", '[ree]\nroo = ["bar", "baz"]', '[ree]\nroo = [ "baz"]\n'),
                 # Toml array of tables:

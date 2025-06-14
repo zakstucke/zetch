@@ -29,9 +29,17 @@ pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Report<Ze
             Coerce::Json => match value {
                 Value::String(s) => match serde_json::from_str(&s) {
                     Ok(v) => Ok(v),
-                    Err(e) => Err(zerr!(Zerr::CoercionError, "Failed to parse string as valid json: {}, {}", s, e)),
+                    Err(e) => Err(zerr!(
+                        Zerr::CoercionError,
+                        "Failed to parse string as valid json: {}, {}",
+                        s,
+                        e
+                    )),
                 },
-                _ => Err(zerr!(Zerr::CoercionError, "String input expected for json.")),
+                _ => Err(zerr!(
+                    Zerr::CoercionError,
+                    "String input expected for json."
+                )),
             },
             Coerce::Str => {
                 if matches!(value, Value::String(_)) {
@@ -41,30 +49,45 @@ pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Report<Ze
                 }
             }
             Coerce::Int => match value {
-                Value::Number(num) => Ok(
-                    Value::Number((num.as_f64().ok_or_else(||
-                        zerr!(Zerr::CoercionError, "Failed to coerce number to f64.")
-                    )?.round() as i64).into())
-                ),
-                Value::String(s) => Ok(
-                    Value::Number((s.parse::<f64>().map_err(|e|
-                        zerr!(Zerr::CoercionError, "String was not a valid int or float: '{}'", e)
-                    )?.round() as i64).into())
-                ),
-                _ => Err(zerr!(Zerr::CoercionError,
+                Value::Number(num) => Ok(Value::Number(
+                    (num.as_f64()
+                        .ok_or_else(|| {
+                            zerr!(Zerr::CoercionError, "Failed to coerce number to f64.")
+                        })?
+                        .round() as i64)
+                        .into(),
+                )),
+                Value::String(s) => Ok(Value::Number(
+                    (s.parse::<f64>()
+                        .map_err(|e| {
+                            zerr!(
+                                Zerr::CoercionError,
+                                "String was not a valid int or float: '{}'",
+                                e
+                            )
+                        })?
+                        .round() as i64)
+                        .into(),
+                )),
+                _ => Err(zerr!(
+                    Zerr::CoercionError,
                     "Ints can only be coerced from ints, floats and strings."
                 )),
             },
             Coerce::Float => match value {
                 Value::Number(num) => Ok(Value::Number(num)),
-                Value::String(s) => Ok(
-                    Value::Number(serde_json::Number::from_f64(s.parse::<f64>().map_err(|e|
-                        zerr!(Zerr::CoercionError, "String was not a valid int or float: '{}'", e)
-                    )?).ok_or_else(
-                        || zerr!(Zerr::CoercionError, "Failed to coerce float to f64.")
-                    )?)
-                ),
-                _ => Err(zerr!(Zerr::CoercionError,
+                Value::String(s) => Ok(Value::Number(
+                    serde_json::Number::from_f64(s.parse::<f64>().map_err(|e| {
+                        zerr!(
+                            Zerr::CoercionError,
+                            "String was not a valid int or float: '{}'",
+                            e
+                        )
+                    })?)
+                    .ok_or_else(|| zerr!(Zerr::CoercionError, "Failed to coerce float to f64."))?,
+                )),
+                _ => Err(zerr!(
+                    Zerr::CoercionError,
                     "Floats can only be coerced from floats, ints and strings."
                 )),
             },
@@ -73,7 +96,10 @@ pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Report<Ze
                 Value::Number(num) => match num.to_string().as_str() {
                     "0" => Ok(Value::Bool(false)),
                     "1" => Ok(Value::Bool(true)),
-                    _ => Err(zerr!(Zerr::CoercionError, "Bools can only be coerced from 0/1 integer types.")),
+                    _ => Err(zerr!(
+                        Zerr::CoercionError,
+                        "Bools can only be coerced from 0/1 integer types."
+                    )),
                 },
                 Value::String(s) => match s.to_lowercase().as_str() {
                     "1" => Ok(Value::Bool(true)),
@@ -82,14 +108,15 @@ pub fn coerce(value: &Value, c_type: &Option<Coerce>) -> Result<Value, Report<Ze
                     "false" => Ok(Value::Bool(false)),
                     "n" => Ok(Value::Bool(false)),
                     "0" => Ok(Value::Bool(false)),
-                    _ => Err(
-                        zerr!(
-                            Zerr::CoercionError,
-                            "Bools can only be coerced from strings 'true'/'false'/'y'/'n'/'0'/'1' string types."
-                        )
-                    ),
+                    _ => Err(zerr!(
+                        Zerr::CoercionError,
+                        "Bools can only be coerced from strings 'true'/'false'/'y'/'n'/'0'/'1' string types."
+                    )),
                 },
-                _ => Err(zerr!(Zerr::CoercionError, "Bools can only be coerced from bools, floats and strings.")),
+                _ => Err(zerr!(
+                    Zerr::CoercionError,
+                    "Bools can only be coerced from bools, floats and strings."
+                )),
             },
         };
 

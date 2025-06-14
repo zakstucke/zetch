@@ -128,7 +128,10 @@ pub fn get_filetype(
                     if num_succ == 0 {
                         "Filetype could not be inferred automatically when file extension is unknown, parsing failed using all filetype parsers.".to_string()
                     } else {
-                        format!("Filetype could not be inferred automatically when file extension is unknown, multiple filetype parsers can decode the contents.\nSpecify e.g. {} to disambiguate.", valid_ft_opts_str())
+                        format!(
+                            "Filetype could not be inferred automatically when file extension is unknown, multiple filetype parsers can decode the contents.\nSpecify e.g. {} to disambiguate.",
+                            valid_ft_opts_str()
+                        )
                     }
                 );
 

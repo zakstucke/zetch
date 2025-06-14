@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use ignore::{overrides::OverrideBuilder, WalkBuilder};
+use ignore::{WalkBuilder, overrides::OverrideBuilder};
 use regex::Regex;
 use tracing::debug;
 
