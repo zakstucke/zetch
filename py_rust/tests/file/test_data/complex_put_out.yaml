@@ -1,6 +1,6 @@
 # This is a sample YAML file with various YAML features and comments
 
-name: John Doe   # Inline comment
+name: "John Doe" # Inline comment
 
 age: 30 # Multiline
 # comment
@@ -8,23 +8,23 @@ age: 30 # Multiline
 isStudent: false
 
 address:
-  street: 123 Main St
-  city: Anytown
-  zipcode: '12345'
+    street: "123 Main St"
+    city: "Anytown"
+    zipcode: "12345"
 
 phoneNumbers:
-- type: home
-  number: 123-456-7890       # This is a home phone number
+    - type: "home"
+      number: "123-456-7890" # This is a home phone number
     # Comment above modifiable item
-- type: NEW_TYPE
-  number: 987-654-3210       # This is a work phone number
+    - type: NEW_TYPE
+      number: "987-654-3210" # This is a work phone number
     # Comment at end of array
 
 additionalInfo:
     # Nested object with additional information
-  hobbies:
-  - reading
-  - swimming
-  - cooking
-  isMarried: true
+    hobbies:
+        - "reading"
+        - "swimming"
+        - "cooking"
+    isMarried: true
 # Comment at end of file

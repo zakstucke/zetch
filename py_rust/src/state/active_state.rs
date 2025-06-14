@@ -197,10 +197,11 @@ impl State {
                                         .collect::<Vec<&str>>();
                                     env_keys.sort_by_key(|name| name.to_lowercase());
                                     return Err(zerr!(
-                                    Zerr::ContextLoadError,
-                                    "Unrecognized context.env var provided to '--ban-defaults': '{}'. All env vars in config: '{}'.",
-                                    key, env_keys.join(", ")
-                                ));
+                                        Zerr::ContextLoadError,
+                                        "Unrecognized context.env var provided to '--ban-defaults': '{}'. All env vars in config: '{}'.",
+                                        key,
+                                        env_keys.join(", ")
+                                    ));
                                 }
                             }
                             Some(banned_env_defaults)

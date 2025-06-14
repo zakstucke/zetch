@@ -51,7 +51,7 @@ pub fn handle_delete(
                         path,
                         path.len() - 1,
                         trav.active_as_serde()?
-                    ))
+                    ));
                 }
             }
         }

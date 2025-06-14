@@ -78,7 +78,11 @@ pub fn post_validate(conf: &mut Config, config_path: &Path) -> Result<(), Report
 
         // Make sure exists:
         if !PathBuf::from(&path).exists() {
-            return Err(zerr!(Zerr::ConfigInvalid, "Path '{}' does not exist. Note relative paths are resolved from the config file directory.", path));
+            return Err(zerr!(
+                Zerr::ConfigInvalid,
+                "Path '{}' does not exist. Note relative paths are resolved from the config file directory.",
+                path
+            ));
         }
 
         Ok(path)

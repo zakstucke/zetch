@@ -1,7 +1,7 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::{
-    coerce::{coerce, Coerce},
+    coerce::{Coerce, coerce},
     prelude::*,
 };
 

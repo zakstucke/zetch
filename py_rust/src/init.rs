@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use crate::{
-    args::{InitCommand, DEFAULT_CONFIG_PATH},
+    args::{DEFAULT_CONFIG_PATH, InitCommand},
     prelude::*,
 };
 

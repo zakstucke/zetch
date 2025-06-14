@@ -65,7 +65,7 @@ impl Config {
                     Zerr::ConfigInvalid,
                     "Invalid toml formatting: '{}'.",
                     e
-                ))
+                ));
             }
         };
 

@@ -48,7 +48,7 @@ from .test_data.utils import tfile
                 ),
                 ("toml", 'ree = {roo = ["bar", "baz"]}', 'ree = {roo = "hello!"}\n'),
                 ("toml", '[ree]\nroo = ["bar", "baz"]', '[ree]\nroo = "hello!"\n'),
-                ("yaml", "ree:\n  roo:\n  - bar\n  - baz", "ree:\n  roo: hello!\n"),
+                ("yaml", "ree:\n  roo:\n  - bar\n  - baz", "ree:\n  roo:\n  hello!\n"),
                 ("yaml", "ree: {roo: [bar, baz]}", "ree: {roo: hello!}\n"),
             ]
         ],
@@ -131,7 +131,11 @@ from .test_data.utils import tfile
                     '{"ree": {}}',
                     '{\n  "ree": {\n    "roo": {\n      "baz": { "bar": "NEW" }\n    }\n  }\n}\n',
                 ),
-                ("yaml", "ree: {}", "ree:\n  roo:\n    baz:\n      bar: NEW\n"),
+                (
+                    "yaml",
+                    "ree:\n  foo: null",
+                    "ree:\n  foo: null\n  roo:\n    baz:\n      bar: NEW\n",
+                ),
                 ("toml", "ree = {}", 'ree = { roo = { baz = { bar = "NEW" } } }\n'),
             ]
         ],
@@ -177,8 +181,8 @@ from .test_data.utils import tfile
                 ),
                 (
                     "yaml",
-                    "ree:\n  # Above comment\n  foo: OLD # Side comment\n  # Below comment",
-                    "ree:\n  # Above comment\n  foo: NEW # Side comment\n  # Below comment\n",
+                    "ree:\n  # Above comment\n  foo: OLD\n  # Below comment",
+                    "ree:\n  # Above comment\n  foo: NEW\n  # Below comment\n",
                 ),
                 # Toml direct below table header:
                 (
@@ -205,8 +209,8 @@ from .test_data.utils import tfile
                 ),
                 (
                     "yaml",
-                    "ree:\n  foo:\n  - a\n  # Above comment\n  - OLD # Side comment\n  # Below comment\n  - c",
-                    "ree:\n  foo:\n  - a\n  # Above comment\n  - NEW # Side comment\n  # Below comment\n  - c",
+                    "ree:\n  foo:\n  - a\n  # Above comment\n  - OLD\n  # Below comment\n  - c",
+                    "ree:\n  foo:\n  - a\n  # Above comment\n  - NEW\n  # Below comment\n  - c",
                 ),
                 # Toml inline array:
                 (

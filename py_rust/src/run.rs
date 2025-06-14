@@ -1,5 +1,7 @@
-use bitbazaar::log::GlobalLog;
+use std::str::FromStr;
+
 use clap::{Parser, Subcommand};
+use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 use crate::{
     arg_matcher::arg_matcher,
@@ -40,37 +42,50 @@ pub fn run() -> Result<(), Report<Zerr>> {
 
     let args = args::Args::parse_from(py_args);
 
-    // Setup global logging:
-    let mut builder = GlobalLog::builder();
-
+    // Setup logging:
     if args.log_level_args.verbose {
-        builder = builder
-            .stdout(true, true)
-            .level_from(tracing::Level::TRACE)
-            .change_context(Zerr::InternalError)?;
-    } else if !args.log_level_args.silent {
-        builder = builder
-            .stdout(true, true)
-            .level_from(
-                // If its read, put, delete or var subcommands, stdout is important, so only show error!() in default mode:
-                if matches!(
-                    &args.command,
-                    args::Command::Read(_)
-                        | args::Command::Put(_)
-                        | args::Command::Del(_)
-                        | args::Command::Var(_)
-                ) {
-                    tracing::Level::ERROR
-                } else {
-                    tracing::Level::INFO
-                },
+        tracing_subscriber::registry()
+            .with(
+                fmt::layer()
+                    .with_level(true)
+                    .with_target(false)
+                    .with_file(true)
+                    .with_line_number(true)
+                    .with_ansi(true)
+                    .with_file(true),
             )
-            .change_context(Zerr::InternalError)?;
-    }
+            .with(EnvFilter::from_str("RUST_LOG=trace").change_context(Zerr::InternalError)?)
+            .init();
+    } else if !args.log_level_args.silent {
+        // If its read, put, delete or var subcommands, stdout is important, so only show error!() in default mode:
+        let level_from = if matches!(
+            &args.command,
+            args::Command::Read(_)
+                | args::Command::Put(_)
+                | args::Command::Del(_)
+                | args::Command::Var(_)
+        ) {
+            tracing::Level::ERROR
+        } else {
+            tracing::Level::INFO
+        };
 
-    // Build and set as global logger:
-    let log = builder.build().change_context(Zerr::InternalError)?;
-    log.register_global().change_context(Zerr::InternalError)?;
+        tracing_subscriber::registry()
+            .with(
+                fmt::layer()
+                    .with_level(true)
+                    .with_target(false)
+                    .with_file(true)
+                    .with_line_number(true)
+                    .with_ansi(true)
+                    .with_file(true),
+            )
+            .with(
+                EnvFilter::from_str(&format!("RUST_LOG={level_from}"))
+                    .change_context(Zerr::InternalError)?,
+            )
+            .init();
+    }
 
     let result = arg_matcher(args);
 

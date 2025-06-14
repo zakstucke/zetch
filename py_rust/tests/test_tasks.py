@@ -22,7 +22,7 @@ def check_file(filepath: str, content: str):
             (
                 f"basic_{typ}",
                 typ,
-                [{"commands": ["echo hello > file.txt"]}],
+                [{"commands": ["bash -c 'echo hello > file.txt'"]}],
                 {},
                 lambda man: lambda: check_file(os.path.join(man.root_dir, "file.txt"), "hello"),
             )
@@ -36,8 +36,8 @@ def check_file(filepath: str, content: str):
                 [
                     {
                         "commands": [
-                            'echo \'{"ree": "bar"}\' > file.json',
-                            "zetch put file.json value $(zetch read file.json ree)",
+                            'bash -c \'echo {\\"ree\\": \\"bar\\"} > file.json\'',
+                            "bash -c 'zetch put file.json value $(zetch read file.json ree)'",
                             "zetch del file.json ree",
                         ]
                     }
@@ -56,8 +56,8 @@ def check_file(filepath: str, content: str):
             [
                 {
                     "commands": [
-                        'echo "{}" > file.json',
-                        "zetch put file.json value $(zetch var FOO)",
+                        "bash -c 'echo \"{}\" > file.json'",
+                        "bash -c 'zetch put file.json value $(zetch var FOO)'",
                     ]
                 }
             ],
@@ -123,9 +123,9 @@ def test_tasks_valid(
                     "tasks": {
                         "pre": [
                             {
-                                "commands": ["echo foo && false", "echo bar"]
+                                "commands": ["bash -c 'echo foo && false'", "echo bar"]
                                 if in_middle
-                                else ["echo foo", "echo bar && false"],
+                                else ["echo foo", "bash -c 'echo bar && false'"],
                             }
                         ]
                     }
@@ -171,7 +171,7 @@ def test_tasks_invalid(
                         {
                             "commands": [
                                 "zetch var FOO",
-                                'echo \'{"ree": "randomo"}\' > file.json',
+                                'bash -c \'echo {\\"ree\\": \\"randomo\\"} > file.json\'',
                                 "zetch read file.json ree",
                                 "zetch put file.json value bar",
                                 "zetch del file.json ree",

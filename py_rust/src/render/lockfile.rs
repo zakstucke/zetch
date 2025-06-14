@@ -4,7 +4,7 @@ use std::{
     path::PathBuf,
 };
 
-use sha2::{digest::generic_array::GenericArray, Digest, Sha256};
+use sha2::{Digest, Sha256, digest::generic_array::GenericArray};
 use tracing::{debug, warn};
 
 use super::template;
